@@ -112,9 +112,16 @@ export default function ProfilePage() {
     mutationFn: async (formData: FormData) => {
       const res = await fetch("/api/user/photo", {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
-      return await res.json() as { photoURL: string };
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to upload photo");
+      }
+      
+      return await res.json();
     },
     onSuccess: (data) => {
       setPhotoURL(data.photoURL);
