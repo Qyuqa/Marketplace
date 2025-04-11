@@ -639,10 +639,13 @@ export class MemStorage implements IStorage {
   // Review methods
   async createReview(review: InsertReview): Promise<Review> {
     const id = this.currentReviewId++;
+    const now = new Date();
     const newReview: Review = { 
       ...review, 
       id,
-      createdAt: new Date() 
+      status: "published",
+      createdAt: now,
+      updatedAt: now
     };
     this.reviews.set(id, newReview);
     
