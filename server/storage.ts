@@ -82,6 +82,7 @@ export class MemStorage implements IStorage {
   private cartItems: Map<number, CartItem>;
   private orders: Map<number, Order>;
   private orderItems: Map<number, OrderItem>;
+  private reviews: Map<number, Review>;
   
   currentUserId: number;
   currentVendorId: number;
@@ -103,6 +104,7 @@ export class MemStorage implements IStorage {
     this.cartItems = new Map();
     this.orders = new Map();
     this.orderItems = new Map();
+    this.reviews = new Map();
     
     this.currentUserId = 1;
     this.currentVendorId = 1;

@@ -6,7 +6,8 @@ import {
   carts, Cart, InsertCart,
   cartItems, CartItem, InsertCartItem,
   orders, Order, InsertOrder,
-  orderItems, OrderItem, InsertOrderItem
+  orderItems, OrderItem, InsertOrderItem,
+  reviews, Review, InsertReview
 } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
@@ -512,5 +513,77 @@ export class DatabaseStorage implements IStorage {
     }
     
     return { order, items: itemsWithProducts };
+  }
+
+  // Review methods
+  async createReview(review: InsertReview): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
+    
+    // Update product rating
+    await this.updateProductRating(review.productId);
+    
+    // Update vendor rating
+    await this.updateVendorRating(review.vendorId);
+    
+    return newReview;
+  }
+  
+  async getReviewsByProduct(productId: number): Promise<Review[]> {
+    return db.select()
+      .from(reviews)
+      .where(eq(reviews.productId, productId))
+      .orderBy(desc(reviews.createdAt));
+  }
+  
+  async getReviewsByUser(userId: number): Promise<Review[]> {
+    return db.select()
+      .from(reviews)
+      .where(eq(reviews.userId, userId))
+      .orderBy(desc(reviews.createdAt));
+  }
+  
+  async getReviewsByVendor(vendorId: number): Promise<Review[]> {
+    return db.select()
+      .from(reviews)
+      .where(eq(reviews.vendorId, vendorId))
+      .orderBy(desc(reviews.createdAt));
+  }
+  
+  async updateProductRating(productId: number): Promise<void> {
+    // Get all reviews for the product
+    const productReviews = await this.getReviewsByProduct(productId);
+    
+    if (productReviews.length === 0) return;
+    
+    // Calculate average rating
+    const totalRating = productReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / productReviews.length;
+    
+    // Update product
+    await db.update(products)
+      .set({ 
+        rating: averageRating,
+        reviewCount: productReviews.length
+      })
+      .where(eq(products.id, productId));
+  }
+  
+  async updateVendorRating(vendorId: number): Promise<void> {
+    // Get all reviews for the vendor
+    const vendorReviews = await this.getReviewsByVendor(vendorId);
+    
+    if (vendorReviews.length === 0) return;
+    
+    // Calculate average rating
+    const totalRating = vendorReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / vendorReviews.length;
+    
+    // Update vendor
+    await db.update(vendors)
+      .set({ 
+        rating: averageRating,
+        reviewCount: vendorReviews.length
+      })
+      .where(eq(vendors.id, vendorId));
   }
 }
