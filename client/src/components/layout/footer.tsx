@@ -16,7 +16,7 @@ export default function Footer() {
               <svg className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
-              <span className="ml-2 text-xl font-bold text-white">MultiMarket</span>
+              <span className="ml-2 text-xl font-bold text-white">Qyuqa</span>
             </div>
             <p className="mb-4">The ultimate multi-vendor marketplace for all your shopping needs.</p>
             <div className="flex space-x-4">
@@ -48,7 +48,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">For Vendors</h3>
             <ul className="space-y-2">
-              <li><Link href="/vendor/register" className="hover:text-white transition">Sell on MultiMarket</Link></li>
+              <li><Link href="/vendor/register" className="hover:text-white transition">Sell on Qyuqa</Link></li>
               <li><a href="#" className="hover:text-white transition">Vendor Resources</a></li>
               <li><Link href="/auth" className="hover:text-white transition">Vendor Login</Link></li>
               <li><a href="#" className="hover:text-white transition">Success Stories</a></li>
@@ -68,7 +68,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p>© {new Date().getFullYear()} MultiMarket. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Qyuqa. All rights reserved.</p>
             <div className="flex flex-wrap justify-center space-x-4 mt-4 md:mt-0">
               <a href="#" className="hover:text-white transition">Terms of Service</a>
               <a href="#" className="hover:text-white transition">Privacy Policy</a>

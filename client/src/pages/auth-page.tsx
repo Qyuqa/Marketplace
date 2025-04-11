@@ -104,7 +104,7 @@ export default function AuthPage() {
       <div className="w-full lg:w-1/2 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-8 lg:p-16 flex flex-col justify-center order-1 lg:order-2">
         <div className="max-w-xl mx-auto">
           <h1 className="text-3xl lg:text-4xl font-bold mb-6">
-            Welcome to MultiMarket
+            Welcome to Qyuqa
           </h1>
           <p className="text-lg lg:text-xl mb-8 opacity-90">
             The premier multivendor marketplace with thousands of products from trusted vendors
