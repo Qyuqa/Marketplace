@@ -102,12 +102,12 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Hero Section (Right on large screens) */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-8 lg:p-16 flex flex-col justify-center order-1 lg:order-2">
+      <div className="w-full lg:w-1/2 bg-gradient-to-r from-zinc-900 to-zinc-800 text-white p-8 lg:p-16 flex flex-col justify-center order-1 lg:order-2">
         <div className="max-w-xl mx-auto">
-          <h1 className="text-3xl lg:text-4xl font-bold mb-6">
+          <h1 className="text-3xl lg:text-4xl font-bold mb-6 text-white">
             Welcome to Qyuqa
           </h1>
-          <p className="text-lg lg:text-xl mb-8 opacity-90">
+          <p className="text-lg lg:text-xl mb-8 text-white">
             The premier multivendor marketplace with thousands of products from trusted vendors
           </p>
 
@@ -117,8 +117,8 @@ export default function AuthPage() {
                 <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Shop with Confidence</h3>
-                <p className="opacity-80">
+                <h3 className="font-semibold text-lg text-white">Shop with Confidence</h3>
+                <p className="text-gray-200">
                   Browse thousands of products from various vendors in one place
                 </p>
               </div>
@@ -129,8 +129,8 @@ export default function AuthPage() {
                 <Store className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Start Selling</h3>
-                <p className="opacity-80">
+                <h3 className="font-semibold text-lg text-white">Start Selling</h3>
+                <p className="text-gray-200">
                   Become a vendor and reach thousands of customers worldwide
                 </p>
               </div>
@@ -141,8 +141,8 @@ export default function AuthPage() {
                 <Shield className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Secure Transactions</h3>
-                <p className="opacity-80">
+                <h3 className="font-semibold text-lg text-white">Secure Transactions</h3>
+                <p className="text-gray-200">
                   Shop with peace of mind with our secure payment processing
                 </p>
               </div>
