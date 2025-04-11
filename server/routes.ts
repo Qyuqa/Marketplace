@@ -436,10 +436,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      console.log("Review submission data:", req.body);
+      
       const validatedData = insertReviewSchema.parse({
         ...req.body,
         userId: req.user.id,
       });
+      
+      console.log("Validated review data:", validatedData);
       
       // Verify that the product exists
       const product = await storage.getProduct(validatedData.productId);
@@ -450,18 +454,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the review
       const review = await storage.createReview(validatedData);
       
+      console.log("Created review:", review);
+      
       res.status(201).json(review);
     } catch (error) {
+      console.error("Review creation error:", error);
+      
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create review" });
+      res.status(500).json({ message: "Failed to create review", error: error.message });
     }
   });
 
   app.get("/api/reviews/product/:id", async (req, res) => {
     try {
       const productId = parseInt(req.params.id);
+      console.log("Fetching reviews for product:", productId);
       
       // Check if product exists
       const product = await storage.getProduct(productId);
@@ -470,9 +480,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const reviews = await storage.getReviewsByProduct(productId);
+      console.log("Found reviews:", reviews);
       res.json(reviews);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch reviews" });
+      console.error("Error fetching product reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews", error: error.message });
     }
   });
   
