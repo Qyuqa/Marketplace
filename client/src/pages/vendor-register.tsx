@@ -1,12 +1,13 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, Image as ImageIcon } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -38,18 +39,122 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
+interface FileUploadButtonProps {
+  onUploadComplete: (url: string) => void;
+}
+
+// File upload button component
+function FileUploadButton({ onUploadComplete }: FileUploadButtonProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (JPEG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Logo image must be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      onUploadComplete(data.url);
+      
+      toast({
+        title: "Upload successful",
+        description: "Your logo has been uploaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      // Clear the input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  return (
+    <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleClick}
+        disabled={isUploading}
+      >
+        {isUploading ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload
+          </>
+        )}
+      </Button>
+    </>
+  );
+}
+
 // Schema for vendor registration
 const vendorSchema = z.object({
   storeName: z.string().min(3, "Store name must be at least 3 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   contactEmail: z.string().email("Please enter a valid email address"),
   contactPhone: z.string().optional(),
-  logoUrl: z.string().url("Please enter a valid URL").optional(),
+  logoUrl: z.string().optional(),
   bannerColor: z.string().optional(),
-  termsAccepted: z.literal(true, {
-    errorMap: () => ({
-      message: "You must accept the terms and conditions",
-    }),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the terms and conditions",
   }),
 });
 
@@ -240,16 +345,48 @@ export default function VendorRegister() {
                       name="logoUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Logo URL (Optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="https://example.com/logo.png"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
+                          <FormLabel>Store Logo</FormLabel>
+                          <div className="flex flex-col space-y-2">
+                            {field.value ? (
+                              <div className="flex flex-col items-center mb-2">
+                                <div className="h-24 w-24 rounded-lg border bg-white overflow-hidden mb-2">
+                                  <img
+                                    src={field.value}
+                                    alt="Logo preview"
+                                    className="h-full w-full object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = `https://via.placeholder.com/64?text=${form.getValues("storeName").charAt(0) || 'A'}`;
+                                    }}
+                                  />
+                                </div>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => field.onChange("")}
+                                >
+                                  Remove Logo
+                                </Button>
+                              </div>
+                            ) : null}
+                            
+                            <div className="flex space-x-2">
+                              <div className="flex-1">
+                                <FormControl>
+                                  <Input
+                                    placeholder="https://example.com/logo.png"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                              </div>
+                              <FileUploadButton
+                                onUploadComplete={(url) => field.onChange(url)}
+                              />
+                            </div>
+                          </div>
                           <FormDescription>
-                            Enter a URL for your store logo (recommended size: 200x200px)
+                            Enter a URL or upload an image for your store logo (recommended size: 200x200px)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

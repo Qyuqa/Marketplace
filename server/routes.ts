@@ -1,5 +1,9 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema } from "@shared/schema";
