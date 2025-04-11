@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import QyuqaLogo from "@/assets/qyuqa-logo.png";
 
 export default function Header() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -49,10 +50,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <svg className="h-8 w-8 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-            </svg>
-            <span className="ml-2 text-xl font-bold text-gray-900">Qyuqa</span>
+            <img src={QyuqaLogo} alt="Qyuqa Logo" className="h-10 w-auto" />
           </Link>
           
           {/* Search Bar (Medium screens and up) */}

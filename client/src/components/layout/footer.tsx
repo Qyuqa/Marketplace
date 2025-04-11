@@ -5,6 +5,7 @@ import {
   Instagram, 
   Linkedin
 } from "lucide-react";
+import QyuqaLogo from "@/assets/qyuqa-logo.png";
 
 export default function Footer() {
   return (
@@ -13,10 +14,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center mb-4">
-              <svg className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-              </svg>
-              <span className="ml-2 text-xl font-bold text-white">Qyuqa</span>
+              <img src="/src/assets/qyuqa-logo.png" alt="Qyuqa Logo" className="h-12 w-auto" />
             </div>
             <p className="mb-4">The ultimate multi-vendor marketplace for all your shopping needs.</p>
             <div className="flex space-x-4">
