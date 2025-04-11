@@ -6,7 +6,8 @@ import {
   carts, Cart, InsertCart,
   cartItems, CartItem, InsertCartItem,
   orders, Order, InsertOrder,
-  orderItems, OrderItem, InsertOrderItem
+  orderItems, OrderItem, InsertOrderItem,
+  reviews, Review, InsertReview
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -56,6 +57,14 @@ export interface IStorage {
   createOrder(order: InsertOrder, items: Omit<InsertOrderItem, "orderId">[]): Promise<Order>;
   getOrdersByUser(userId: number): Promise<Order[]>;
   getOrder(id: number): Promise<{ order: Order, items: (OrderItem & { product: Product })[] } | undefined>;
+  
+  // Review operations
+  createReview(review: InsertReview): Promise<Review>;
+  getReviewsByProduct(productId: number): Promise<Review[]>;
+  getReviewsByUser(userId: number): Promise<Review[]>;
+  getReviewsByVendor(vendorId: number): Promise<Review[]>;
+  updateProductRating(productId: number): Promise<void>;
+  updateVendorRating(vendorId: number): Promise<void>;
   
   // Session store
   sessionStore: session.Store;

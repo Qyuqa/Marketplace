@@ -95,6 +95,21 @@ export const orderItems = pgTable("order_items", {
   price: doublePrecision("price").notNull(),
 });
 
+// Reviews
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  orderId: integer("order_id").references(() => orders.id),
+  rating: integer("rating").notNull(),
+  title: text("title"),
+  comment: text("comment"),
+  status: text("status").default("published").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // User Schema for Insert
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -146,6 +161,14 @@ export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
   id: true,
 });
 
+// Review Schema for Insert
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -170,3 +193,6 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
