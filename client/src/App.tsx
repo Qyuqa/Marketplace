@@ -11,6 +11,7 @@ import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout-page";
 import AuthPage from "@/pages/auth-page";
 import VendorRegister from "@/pages/vendor-register";
+import ProfilePage from "@/pages/profile-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 
@@ -30,6 +31,7 @@ function App() {
             <ProtectedRoute path="/cart" component={CartPage} />
             <ProtectedRoute path="/checkout" component={CheckoutPage} />
             <ProtectedRoute path="/vendor/register" component={VendorRegister} />
+            <ProtectedRoute path="/profile" component={ProfilePage} />
             <Route path="*">
               <NotFound />
             </Route>

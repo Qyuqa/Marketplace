@@ -279,6 +279,29 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
   
+  async updateUserProfile(id: number, data: { fullName: string; email: string; phone?: string }): Promise<User> {
+    const [updatedUser] = await db.update(users)
+      .set({ 
+        fullName: data.fullName,
+        email: data.email
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+  
+  async updateUserPassword(id: number, hashedPassword: string): Promise<void> {
+    await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, id));
+  }
+  
+  async updateUserPhoto(id: number, photoUrl: string): Promise<void> {
+    await db.update(users)
+      .set({ photoUrl }) // This might need to be added to the schema
+      .where(eq(users.id, id));
+  }
+  
   // Vendor methods
   async getVendor(id: number): Promise<Vendor | undefined> {
     const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));

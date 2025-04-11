@@ -6,6 +6,7 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { hashPassword, comparePasswords } from "./auth";
 import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -549,6 +550,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(reviews);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  // User Profile Management Routes
+  app.patch("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { fullName, email, phone } = req.body;
+      
+      // Check if email is already in use by another user
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser && existingUser.id !== req.user.id) {
+        return res.status(400).json({ message: "Email is already in use" });
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUserProfile(req.user.id, {
+        fullName,
+        email,
+        phone
+      });
+      
+      // Return updated user without password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.patch("/api/user/password", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      // Verify current password
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const isPasswordValid = await comparePasswords(currentPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update password
+      await storage.updateUserPassword(req.user.id, hashedPassword);
+      
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error updating password:", error);
+      res.status(500).json({ message: "Failed to update password" });
+    }
+  });
+
+  // Profile photo upload endpoint
+  app.post("/api/user/photo", upload.single("photo"), async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // File has been uploaded and is available at req.file.path
+      const photoURL = `/uploads/${req.file.filename}`;
+      
+      // Update user with new photo URL
+      await storage.updateUserPhoto(req.user.id, photoURL);
+      
+      res.json({ photoURL });
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      res.status(500).json({ message: "Failed to upload photo" });
     }
   });
 

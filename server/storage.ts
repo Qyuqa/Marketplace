@@ -20,6 +20,9 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: number, data: { fullName: string; email: string; phone?: string }): Promise<User>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<void>;
+  updateUserPhoto(id: number, photoUrl: string): Promise<void>;
   
   // Vendor operations
   getVendor(id: number): Promise<Vendor | undefined>;
@@ -398,6 +401,43 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id, createdAt: new Date() };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUserProfile(id: number, data: { fullName: string; email: string; phone?: string }): Promise<User> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    const updatedUser = { 
+      ...user, 
+      fullName: data.fullName, 
+      email: data.email,
+      phone: data.phone
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUserPassword(id: number, hashedPassword: string): Promise<void> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    user.password = hashedPassword;
+    this.users.set(id, user);
+  }
+  
+  async updateUserPhoto(id: number, photoUrl: string): Promise<void> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    user.photoUrl = photoUrl;
+    this.users.set(id, user);
   }
   
   // Vendor methods
