@@ -52,7 +52,7 @@ export default function Header() {
             <svg className="h-8 w-8 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
-            <span className="ml-2 text-xl font-bold text-gray-900">MultiMarket</span>
+            <span className="ml-2 text-xl font-bold text-gray-900">Qyuqa</span>
           </Link>
           
           {/* Search Bar (Medium screens and up) */}

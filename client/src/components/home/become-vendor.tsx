@@ -8,8 +8,8 @@ export default function BecomeVendor() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Selling on MultiMarket</h2>
-            <p className="text-lg opacity-90 mb-6">Join thousands of successful vendors selling to millions of customers. We provide all the tools you need to grow your business.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Selling on Qyuqa</h2>
+            <p className="text-lg opacity-90 mb-6">Join our growing community of successful vendors reaching eager customers. We provide all the tools you need to grow your business.</p>
             <ul className="mb-8 space-y-3">
               <li className="flex items-start">
                 <CheckCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
