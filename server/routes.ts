@@ -6,7 +6,7 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema } from "@shared/schema";
+import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -426,6 +426,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Reviews
+  app.post("/api/reviews", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const validatedData = insertReviewSchema.parse({
+        ...req.body,
+        userId: req.user.id,
+      });
+      
+      // Verify that the product exists
+      const product = await storage.getProduct(validatedData.productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Create the review
+      const review = await storage.createReview(validatedData);
+      
+      res.status(201).json(review);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get("/api/products/:id/reviews", async (req, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      
+      // Check if product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      const reviews = await storage.getReviewsByProduct(productId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+  
+  app.get("/api/vendors/:id/reviews", async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      
+      // Check if vendor exists
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const reviews = await storage.getReviewsByVendor(vendorId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+  
+  app.get("/api/user/reviews", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const reviews = await storage.getReviewsByUser(req.user.id);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
     }
   });
 

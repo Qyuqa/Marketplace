@@ -92,6 +92,7 @@ export class MemStorage implements IStorage {
   currentCartItemId: number;
   currentOrderId: number;
   currentOrderItemId: number;
+  currentReviewId: number;
   
   sessionStore: session.SessionStore;
 
@@ -114,6 +115,7 @@ export class MemStorage implements IStorage {
     this.currentCartItemId = 1;
     this.currentOrderId = 1;
     this.currentOrderItemId = 1;
+    this.currentReviewId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -632,6 +634,79 @@ export class MemStorage implements IStorage {
       });
     
     return { order, items };
+  }
+  
+  // Review methods
+  async createReview(review: InsertReview): Promise<Review> {
+    const id = this.currentReviewId++;
+    const newReview: Review = { 
+      ...review, 
+      id,
+      createdAt: new Date() 
+    };
+    this.reviews.set(id, newReview);
+    
+    // Update product rating
+    await this.updateProductRating(review.productId);
+    
+    // Update vendor rating
+    await this.updateVendorRating(review.vendorId);
+    
+    return newReview;
+  }
+  
+  async getReviewsByProduct(productId: number): Promise<Review[]> {
+    return Array.from(this.reviews.values())
+      .filter(review => review.productId === productId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async getReviewsByUser(userId: number): Promise<Review[]> {
+    return Array.from(this.reviews.values())
+      .filter(review => review.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async getReviewsByVendor(vendorId: number): Promise<Review[]> {
+    return Array.from(this.reviews.values())
+      .filter(review => review.vendorId === vendorId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async updateProductRating(productId: number): Promise<void> {
+    const product = this.products.get(productId);
+    if (!product) return;
+    
+    const productReviews = await this.getReviewsByProduct(productId);
+    
+    if (productReviews.length === 0) {
+      product.rating = 0;
+      product.reviewCount = 0;
+    } else {
+      const totalRating = productReviews.reduce((sum, review) => sum + review.rating, 0);
+      product.rating = totalRating / productReviews.length;
+      product.reviewCount = productReviews.length;
+    }
+    
+    this.products.set(productId, product);
+  }
+  
+  async updateVendorRating(vendorId: number): Promise<void> {
+    const vendor = this.vendors.get(vendorId);
+    if (!vendor) return;
+    
+    const vendorReviews = await this.getReviewsByVendor(vendorId);
+    
+    if (vendorReviews.length === 0) {
+      vendor.rating = 0;
+      vendor.reviewCount = 0;
+    } else {
+      const totalRating = vendorReviews.reduce((sum, review) => sum + review.rating, 0);
+      vendor.rating = totalRating / vendorReviews.length;
+      vendor.reviewCount = vendorReviews.length;
+    }
+    
+    this.vendors.set(vendorId, vendor);
   }
 }
 
