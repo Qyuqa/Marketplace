@@ -12,6 +12,58 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+  
+  // Setup file upload directory
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  
+  // Configure multer for file uploads
+  const diskStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueId = uuidv4();
+      const ext = path.extname(file.originalname);
+      cb(null, `${uniqueId}${ext}`);
+    }
+  });
+  
+  const upload = multer({ 
+    storage: diskStorage,
+    limits: {
+      fileSize: 2 * 1024 * 1024, // 2MB max file size
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept only image files
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed') as any);
+      }
+    }
+  });
+  
+  // File upload endpoint
+  app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    
+    // Return the URL to the uploaded file
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ 
+      url: fileUrl,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  });
 
   // Categories
   app.get("/api/categories", async (req, res) => {
