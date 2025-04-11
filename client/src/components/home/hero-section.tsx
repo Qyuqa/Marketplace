@@ -16,7 +16,7 @@ export default function HeroSection() {
                 </Button>
               </Link>
               <Link href="/vendor/register">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="border-white text-black bg-white hover:bg-gray-100 w-full sm:w-auto">
                   Become a Vendor
                 </Button>
               </Link>
