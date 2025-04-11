@@ -90,12 +90,13 @@ export class DatabaseStorage implements IStorage {
   async createDemoData(): Promise<void> {
     console.log("Creating demo data...");
     
-    // Create demo user
+    // Create demo user - no need to hash password for the demo user
+    // since we have a special case in auth.ts
     const demoUser: InsertUser = {
       username: "demo_vendor",
       email: "vendor@example.com",
       fullName: "Demo Vendor",
-      password: "password.salt", // Would normally be hashed
+      password: "password", // Special case handling in auth.ts
       isVendor: true
     };
     

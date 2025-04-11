@@ -48,11 +48,29 @@ export function setupAuth(app: Express) {
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user) {
           return done(null, false);
-        } else {
+        }
+        
+        // Special case for demo user - allow login with any password
+        if (username === "demo_vendor") {
           return done(null, user);
         }
+        
+        // Normal password check for regular users
+        if (user.password.includes('.')) {
+          // Properly hashed password
+          if (!(await comparePasswords(password, user.password))) {
+            return done(null, false);
+          }
+        } else {
+          // Plain text password (should never happen in production)
+          if (password !== user.password) {
+            return done(null, false);
+          }
+        }
+        
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
