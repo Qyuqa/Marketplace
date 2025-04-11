@@ -4,7 +4,7 @@ import { CheckCircle } from "lucide-react";
 
 export default function BecomeVendor() {
   return (
-    <section className="py-16 bg-gradient-to-r from-primary-700 to-primary-800 text-white">
+    <section className="py-16 bg-gradient-to-r from-black to-gray-900 text-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-1/2 mb-8 md:mb-0">
@@ -12,24 +12,24 @@ export default function BecomeVendor() {
             <p className="text-lg opacity-90 mb-6">Join our growing community of successful vendors reaching eager customers. We provide all the tools you need to grow your business.</p>
             <ul className="mb-8 space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" />
                 <span>Access to millions of customers</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" />
                 <span>Simple seller tools and dashboard</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" />
                 <span>Secure payments and order management</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" />
                 <span>24/7 seller support and resources</span>
               </li>
             </ul>
             <Link href="/vendor/register">
-              <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50 border-0">
+              <Button size="lg" variant="secondary" className="bg-white text-black hover:bg-gray-100 border-0">
                 Become a Vendor
               </Button>
             </Link>
