@@ -205,12 +205,16 @@ export default function VendorRegister() {
 
   // Form submission handler
   const onSubmit = (data: VendorFormValues) => {
+    console.log("Form submitted with data:", data);
     if (step === 1) {
       setStep(2);
     } else {
       vendorMutation.mutate(data);
     }
   };
+
+  // Log form errors for debugging
+  console.log("Form errors:", form.formState.errors);
 
   // Banner color options
   const bannerColorOptions = [
