@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -152,7 +153,7 @@ export default function AuthPage() {
 
       {/* Auth Form (Left on large screens) */}
       <div className="w-full lg:w-1/2 p-8 lg:p-16 flex items-center justify-center order-2 lg:order-1">
-        <Card className="w-full max-w-md shadow-lg border-0">
+        <Card className="w-full max-w-md shadow-lg border-0 text-gray-800">
           <CardContent className="pt-6">
             <Tabs
               defaultValue="login"
