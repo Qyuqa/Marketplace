@@ -58,7 +58,10 @@ export interface IStorage {
   getOrder(id: number): Promise<{ order: Order, items: (OrderItem & { product: Product })[] } | undefined>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
+  
+  // Initialize data if needed
+  initializeData(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -104,9 +107,11 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
-    
-    // Initialize with categories
-    this.initializeCategories();
+  }
+  
+  // Initialize data method (for compatibility with database storage)
+  async initializeData(): Promise<void> {
+    await this.initializeCategories();
   }
   
   // Initialize seed data
@@ -619,4 +624,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import DatabaseStorage
+import { DatabaseStorage } from "./db-storage";
+
+// Use PostgreSQL database storage instead of memory storage
+export const storage = new DatabaseStorage();
