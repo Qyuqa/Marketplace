@@ -14,7 +14,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center mb-4">
-              <img src="/src/assets/qyuqa-logo.png" alt="Qyuqa Logo" className="h-12 w-auto" />
+              <img src={QyuqaLogo} alt="Qyuqa Logo" className="h-12 w-auto" />
             </div>
             <p className="mb-4">The ultimate multi-vendor marketplace for all your shopping needs.</p>
             <div className="flex space-x-4">
