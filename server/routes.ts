@@ -459,6 +459,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/reviews/product/:id", async (req, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      
+      // Check if product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      const reviews = await storage.getReviewsByProduct(productId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+  
   app.get("/api/products/:id/reviews", async (req, res) => {
     try {
       const productId = parseInt(req.params.id);
@@ -470,6 +487,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const reviews = await storage.getReviewsByProduct(productId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+  
+  app.get("/api/reviews/vendor/:id", async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      
+      // Check if vendor exists
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const reviews = await storage.getReviewsByVendor(vendorId);
       res.json(reviews);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reviews" });

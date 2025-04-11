@@ -1,135 +1,111 @@
 import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-  QueryClient
-} from "@tanstack/react-query";
-import { Review as SelectReview, InsertReview } from "@shared/schema";
-import { apiRequest, queryClient } from "../lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Review, InsertReview } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-type ReviewContextType = {
-  // Product reviews
-  productReviews: SelectReview[] | undefined;
+interface ReviewsContextType {
+  productReviews: Review[] | undefined;
+  vendorReviews: Review[] | undefined;
   isLoadingProductReviews: boolean;
-  
-  // Vendor reviews
-  vendorReviews: SelectReview[] | undefined;
   isLoadingVendorReviews: boolean;
-  
-  // User's reviews
-  userReviews: SelectReview[] | undefined;
-  isLoadingUserReviews: boolean;
-  
-  // Mutations
-  submitReviewMutation: UseMutationResult<SelectReview, Error, Omit<InsertReview, "userId">>;
-};
+  errorProductReviews: Error | null;
+  errorVendorReviews: Error | null;
+  submitReviewMutation: ReturnType<typeof useSubmitReviewMutation>;
+}
 
-export const ReviewContext = createContext<ReviewContextType | null>(null);
-
-export function ReviewProvider({ 
-  children,
-  productId,
-  vendorId 
-}: { 
+interface ReviewsProviderProps {
   children: ReactNode;
-  productId?: number;
-  vendorId?: number;
-}) {
+  productId: number;
+  vendorId: number;
+}
+
+const ReviewsContext = createContext<ReviewsContextType | null>(null);
+
+function useSubmitReviewMutation() {
   const { toast } = useToast();
   
-  // Fetch product reviews if productId is provided
-  const {
-    data: productReviews,
-    isLoading: isLoadingProductReviews,
-  } = useQuery<SelectReview[]>({
-    queryKey: ['/api/products', productId, 'reviews'],
-    queryFn: async () => {
-      if (!productId) return [];
-      const res = await apiRequest('GET', `/api/products/${productId}/reviews`);
+  return useMutation({
+    mutationFn: async (review: Omit<InsertReview, "userId">) => {
+      const res = await apiRequest("POST", "/api/reviews", review);
       return await res.json();
     },
-    enabled: !!productId
-  });
-  
-  // Fetch vendor reviews if vendorId is provided
-  const {
-    data: vendorReviews,
-    isLoading: isLoadingVendorReviews,
-  } = useQuery<SelectReview[]>({
-    queryKey: ['/api/vendors', vendorId, 'reviews'],
-    queryFn: async () => {
-      if (!vendorId) return [];
-      const res = await apiRequest('GET', `/api/vendors/${vendorId}/reviews`);
-      return await res.json();
-    },
-    enabled: !!vendorId
-  });
-  
-  // Fetch user's own reviews
-  const {
-    data: userReviews,
-    isLoading: isLoadingUserReviews,
-  } = useQuery<SelectReview[]>({
-    queryKey: ['/api/user/reviews'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/user/reviews');
-      return await res.json();
-    }
-  });
-  
-  // Mutation to submit a review
-  const submitReviewMutation = useMutation({
-    mutationFn: async (reviewData: Omit<InsertReview, "userId">) => {
-      const res = await apiRequest('POST', '/api/reviews', reviewData);
-      return await res.json();
-    },
-    onSuccess: (review: SelectReview) => {
-      // Invalidate the relevant query caches
-      if (review.productId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/products', review.productId, 'reviews'] });
-      }
-      if (review.vendorId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/vendors', review.vendorId, 'reviews'] });
-      }
-      queryClient.invalidateQueries({ queryKey: ['/api/user/reviews'] });
+    onSuccess: (review: Review) => {
+      // Invalidate both product and vendor reviews queries
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/reviews/product/${review.productId}`] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/reviews/vendor/${review.vendorId}`] 
+      });
+      
+      // Also invalidate the product and vendor to update their ratings
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/products/${review.productId}`] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/vendors/${review.vendorId}`] 
+      });
       
       toast({
-        title: "Review Submitted",
+        title: "Review submitted",
         description: "Thank you for your feedback!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Submission Failed",
+        title: "Error submitting review",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+}
+
+export function ReviewProvider({ children, productId, vendorId }: ReviewsProviderProps) {
+  const { toast } = useToast();
+  
+  const submitReviewMutation = useSubmitReviewMutation();
+  
+  // Query for product reviews
+  const { 
+    data: productReviews, 
+    isLoading: isLoadingProductReviews,
+    error: errorProductReviews,
+  } = useQuery<Review[]>({
+    queryKey: [`/api/reviews/product/${productId}`],
+  });
+  
+  // Query for vendor reviews
+  const { 
+    data: vendorReviews, 
+    isLoading: isLoadingVendorReviews,
+    error: errorVendorReviews,
+  } = useQuery<Review[]>({
+    queryKey: [`/api/reviews/vendor/${vendorId}`],
+  });
   
   return (
-    <ReviewContext.Provider
-      value={{
-        productReviews,
-        isLoadingProductReviews,
-        vendorReviews,
-        isLoadingVendorReviews,
-        userReviews,
-        isLoadingUserReviews,
-        submitReviewMutation,
-      }}
-    >
+    <ReviewsContext.Provider value={{
+      productReviews,
+      vendorReviews,
+      isLoadingProductReviews,
+      isLoadingVendorReviews,
+      errorProductReviews,
+      errorVendorReviews,
+      submitReviewMutation,
+    }}>
       {children}
-    </ReviewContext.Provider>
+    </ReviewsContext.Provider>
   );
 }
 
 export function useReviews() {
-  const context = useContext(ReviewContext);
+  const context = useContext(ReviewsContext);
+  
   if (!context) {
     throw new Error("useReviews must be used within a ReviewProvider");
   }
+  
   return context;
 }

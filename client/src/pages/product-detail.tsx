@@ -133,10 +133,9 @@ export default function ProductDetail() {
                 
                 {/* Rating */}
                 <div className="mb-4">
-                  <Rating 
-                    value={product.rating} 
-                    reviewCount={product.reviewCount} 
-                    showValue={true}
+                  <RatingDisplay 
+                    rating={product.rating !== null ? product.rating : 0} 
+                    reviewCount={product.reviewCount !== null ? product.reviewCount : 0} 
                   />
                 </div>
                 
@@ -218,6 +217,15 @@ export default function ProductDetail() {
             ) : null}
           </div>
         </div>
+        
+        {/* Reviews Section */}
+        {product && vendor && (
+          <ReviewsSectionWrapper 
+            productId={product.id} 
+            vendorId={vendor.id}
+            className="mt-12"
+          />
+        )}
       </div>
     </div>
   );
