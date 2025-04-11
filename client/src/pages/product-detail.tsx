@@ -142,14 +142,15 @@ export default function ProductDetail() {
                 
                 {/* Price */}
                 <div className="flex items-baseline mb-6">
-                  <span className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                  <Price 
+                    amount={product.price}
+                    compareAmount={product.comparePrice}
+                    size="lg"
+                  />
                   {product.comparePrice && product.comparePrice > product.price && (
-                    <>
-                      <span className="text-gray-500 text-lg line-through ml-2">${product.comparePrice.toFixed(2)}</span>
-                      <Badge variant="secondary" className="bg-green-500 text-white hover:bg-green-500 border-0 ml-2">
-                        Save ${(product.comparePrice - product.price).toFixed(2)}
-                      </Badge>
-                    </>
+                    <Badge variant="secondary" className="bg-green-500 text-white hover:bg-green-500 border-0 ml-2">
+                      Save {((product.comparePrice - product.price) * 130).toFixed(0)} KSh
+                    </Badge>
                   )}
                 </div>
                 
@@ -203,7 +204,7 @@ export default function ProductDetail() {
                     <TruckIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
                     <div>
                       <h4 className="font-medium text-gray-900">Free Shipping</h4>
-                      <p className="text-sm text-gray-500">On orders over $50</p>
+                      <p className="text-sm text-gray-500">On orders over 6,500 KSh</p>
                     </div>
                   </div>
                   <div className="flex items-start">
