@@ -121,6 +121,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 // Vendor Schema for Insert
 export const insertVendorSchema = createInsertSchema(vendors).omit({
   id: true,
+  userId: true,
   rating: true,
   reviewCount: true,
   productCount: true,
