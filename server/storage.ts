@@ -159,6 +159,203 @@ export class MemStorage implements IStorage {
     categories.forEach((category) => {
       this.createCategory(category);
     });
+
+    // Initialize demo vendors and products
+    this.initializeDemoData();
+  }
+
+  private async initializeDemoData() {
+    // Create demo user
+    const demoUser: InsertUser = {
+      username: "demo_vendor",
+      email: "vendor@example.com",
+      fullName: "Demo Vendor",
+      password: "password.salt", // This would normally be hashed
+      isVendor: true
+    };
+    const user = await this.createUser(demoUser);
+
+    // Create demo vendors
+    const vendors: InsertVendor[] = [
+      {
+        userId: user.id,
+        storeName: "TechGadgets",
+        description: "The latest electronics and gadgets at affordable prices",
+        contactEmail: "contact@techgadgets.com",
+        logoUrl: "https://via.placeholder.com/200?text=TG",
+        bannerColor: "from-blue-600 to-blue-400",
+        rating: 4.8,
+        reviewCount: 120,
+        verified: true
+      },
+      {
+        userId: user.id,
+        storeName: "Fashion Forward",
+        description: "Trendy clothes and accessories for all seasons",
+        contactEmail: "support@fashionforward.com",
+        logoUrl: "https://via.placeholder.com/200?text=FF",
+        bannerColor: "from-purple-600 to-purple-400",
+        rating: 4.6,
+        reviewCount: 85,
+        verified: true
+      },
+      {
+        userId: user.id,
+        storeName: "Home Harmony",
+        description: "Beautiful furniture and decor for your home",
+        contactEmail: "info@homeharmony.com",
+        logoUrl: "https://via.placeholder.com/200?text=HH",
+        bannerColor: "from-green-600 to-green-400",
+        rating: 4.7,
+        reviewCount: 92,
+        verified: true
+      }
+    ];
+
+    const createdVendors: Vendor[] = [];
+    for (const vendorData of vendors) {
+      const vendor = await this.createVendor(vendorData);
+      createdVendors.push(vendor);
+    }
+
+    // Create demo products
+    const products: InsertProduct[] = [
+      // Electronics (Category 2)
+      {
+        name: "Wireless Bluetooth Headphones",
+        description: "Premium sound quality with noise cancellation and 30-hour battery life",
+        price: 129.99,
+        comparePrice: 159.99,
+        imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
+        inventory: 25,
+        categoryId: 2,
+        vendorId: createdVendors[0].id,
+        isNew: true,
+        isTrending: true,
+        rating: 4.8,
+        reviewCount: 124
+      },
+      {
+        name: "Smart Watch Series 5",
+        description: "Track your fitness, monitor your health, and stay connected with this advanced smartwatch",
+        price: 249.99,
+        comparePrice: 299.99,
+        imageUrl: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=500",
+        inventory: 12,
+        categoryId: 2,
+        vendorId: createdVendors[0].id,
+        isNew: true,
+        isTrending: false,
+        rating: 4.6,
+        reviewCount: 89
+      },
+      {
+        name: "4K Ultra HD Smart TV - 55 inch",
+        description: "Crystal clear picture quality with smart features for streaming and gaming",
+        price: 499.99,
+        comparePrice: 599.99,
+        imageUrl: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500",
+        inventory: 8,
+        categoryId: 2,
+        vendorId: createdVendors[0].id,
+        isNew: false,
+        isTrending: true,
+        rating: 4.7,
+        reviewCount: 56
+      },
+      
+      // Fashion (Category 1)
+      {
+        name: "Premium Leather Jacket",
+        description: "Genuine leather jacket with modern design for a timeless look",
+        price: 199.99,
+        comparePrice: 249.99,
+        imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500",
+        inventory: 15,
+        categoryId: 1,
+        vendorId: createdVendors[1].id,
+        isNew: false,
+        isTrending: true,
+        rating: 4.9,
+        reviewCount: 42
+      },
+      {
+        name: "Casual Summer Dress",
+        description: "Light, breathable fabric perfect for hot summer days",
+        price: 59.99,
+        comparePrice: 79.99,
+        imageUrl: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=500",
+        inventory: 30,
+        categoryId: 1,
+        vendorId: createdVendors[1].id,
+        isNew: true,
+        isTrending: true,
+        rating: 4.5,
+        reviewCount: 78
+      },
+      {
+        name: "Designer Sunglasses",
+        description: "UV protection with stylish frames for any occasion",
+        price: 89.99,
+        comparePrice: 109.99,
+        imageUrl: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=500",
+        inventory: 18,
+        categoryId: 1,
+        vendorId: createdVendors[1].id,
+        isNew: true,
+        isTrending: false,
+        rating: 4.6,
+        reviewCount: 37
+      },
+      
+      // Home (Category 3)
+      {
+        name: "Modern Coffee Table",
+        description: "Sleek design with durable materials perfect for any living room",
+        price: 149.99,
+        comparePrice: 199.99,
+        imageUrl: "https://images.unsplash.com/photo-1499933374294-4584851497cc?w=500",
+        inventory: 7,
+        categoryId: 3,
+        vendorId: createdVendors[2].id,
+        isNew: false,
+        isTrending: false,
+        rating: 4.7,
+        reviewCount: 29
+      },
+      {
+        name: "Memory Foam Mattress - Queen",
+        description: "Cloud-like comfort for the best sleep of your life with cooling technology",
+        price: 599.99,
+        comparePrice: 799.99,
+        imageUrl: "https://images.unsplash.com/photo-1631157852824-10b68759173a?w=500",
+        inventory: 5,
+        categoryId: 3,
+        vendorId: createdVendors[2].id,
+        isNew: true,
+        isTrending: true,
+        rating: 4.9,
+        reviewCount: 115
+      },
+      {
+        name: "Ceramic Dinner Set - 16 Piece",
+        description: "Elegant and durable dishes for everyday use or special occasions",
+        price: 89.99,
+        comparePrice: 119.99,
+        imageUrl: "https://images.unsplash.com/photo-1603199766980-91ebf5e9834d?w=500",
+        inventory: 12,
+        categoryId: 3,
+        vendorId: createdVendors[2].id,
+        isNew: false,
+        isTrending: true,
+        rating: 4.8,
+        reviewCount: 42
+      }
+    ];
+
+    for (const productData of products) {
+      await this.createProduct(productData);
+    }
   }
 
   // User methods
