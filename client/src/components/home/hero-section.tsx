@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
   return (
-    <section className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+    <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
       <div className="container mx-auto px-4 py-12 md:py-20">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-1/2 mb-8 md:mb-0">
