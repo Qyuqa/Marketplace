@@ -19,6 +19,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { RatingDisplay } from "@/components/ui/rating-stars";
 import { ReviewsSectionWrapper } from "@/components/review/reviews-section";
+import { Price } from "@/components/ui/price";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();

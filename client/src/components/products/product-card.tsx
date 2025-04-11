@@ -5,6 +5,7 @@ import { Heart, Eye, ShoppingCart, Tag, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Rating } from "@/components/ui/rating";
 import { Badge } from "@/components/ui/badge";
+import { Price } from "@/components/ui/price";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 
@@ -101,14 +102,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Price and add to cart */}
         <div className="flex justify-between items-center">
-          <div>
-            <span className="font-bold text-gray-900">${product.price.toFixed(2)}</span>
-            {product.comparePrice && product.comparePrice > product.price && (
-              <span className="text-gray-500 text-sm line-through ml-1">
-                ${product.comparePrice.toFixed(2)}
-              </span>
-            )}
-          </div>
+          <Price 
+            amount={product.price}
+            compareAmount={product.comparePrice}
+            size="md"
+          />
           <Button 
             size="icon"
             disabled={isPendingAdd}
