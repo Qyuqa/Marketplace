@@ -131,27 +131,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingVendor) {
         return res.status(400).json({ message: "User already has a vendor profile" });
       }
-
-      const validatedData = insertVendorSchema.parse(req.body);
-      const vendor = await storage.createVendor({
-        ...validatedData,
-        userId: req.user.id,
-      });
-
-      // Update user to be a vendor
-      const user = await storage.getUser(req.user.id);
-      if (user) {
-        user.isVendor = true;
-        req.login(user, (err) => {
-          if (err) throw err;
+      
+      // Log request body for debugging
+      console.log("Vendor registration request body:", req.body);
+      
+      // Remove termsAccepted as it's not part of the vendor schema
+      const { termsAccepted, ...vendorData } = req.body;
+      
+      try {
+        const validatedData = insertVendorSchema.parse(vendorData);
+        const vendor = await storage.createVendor({
+          ...validatedData,
+          userId: req.user.id,
         });
-      }
 
-      res.status(201).json(vendor);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        // Update user to be a vendor
+        const user = await storage.getUser(req.user.id);
+        if (user) {
+          user.isVendor = true;
+          req.login(user, (err) => {
+            if (err) throw err;
+          });
+        }
+
+        res.status(201).json(vendor);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          console.error("Vendor validation error:", JSON.stringify(validationError.format(), null, 2));
+          return res.status(400).json({ 
+            message: "Invalid vendor data", 
+            errors: validationError.errors,
+            details: validationError.format()
+          });
+        }
+        throw validationError;
       }
+    } catch (error) {
+      console.error("Vendor creation error:", error);
       res.status(500).json({ message: "Failed to create vendor" });
     }
   });
