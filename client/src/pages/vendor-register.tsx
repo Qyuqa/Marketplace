@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
@@ -145,20 +145,24 @@ function FileUploadButton({ onUploadComplete }: FileUploadButtonProps) {
   );
 }
 
-// Schema for vendor registration
-const vendorSchema = z.object({
+// Schema for step 1 of vendor registration
+const vendorStepOneSchema = z.object({
   storeName: z.string().min(3, "Store name must be at least 3 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   contactEmail: z.string().email("Please enter a valid email address"),
   contactPhone: z.string().optional(),
   logoUrl: z.string().optional(),
   bannerColor: z.string().optional(),
+});
+
+// Schema for step 2 of vendor registration (includes terms acceptance)
+const vendorStepTwoSchema = vendorStepOneSchema.extend({
   termsAccepted: z.boolean().refine(val => val === true, {
     message: "You must accept the terms and conditions",
   }),
 });
 
-type VendorFormValues = z.infer<typeof vendorSchema>;
+type VendorFormValues = z.infer<typeof vendorStepTwoSchema>;
 
 export default function VendorRegister() {
   const { user } = useAuth();
@@ -168,7 +172,7 @@ export default function VendorRegister() {
 
   // Form setup
   const form = useForm<VendorFormValues>({
-    resolver: zodResolver(vendorSchema),
+    resolver: zodResolver(step === 1 ? vendorStepOneSchema : vendorStepTwoSchema),
     defaultValues: {
       storeName: "",
       description: "",
@@ -178,6 +182,7 @@ export default function VendorRegister() {
       bannerColor: "from-blue-600 to-blue-400",
       termsAccepted: false,
     },
+    mode: "onChange",
   });
 
   // Vendor registration mutation
@@ -202,6 +207,12 @@ export default function VendorRegister() {
       });
     },
   });
+
+  // Update resolver when step changes
+  useEffect(() => {
+    form.clearErrors();
+    form.setValue("termsAccepted", form.getValues("termsAccepted"));
+  }, [step, form]);
 
   // Form submission handler
   const onSubmit = (data: VendorFormValues) => {
