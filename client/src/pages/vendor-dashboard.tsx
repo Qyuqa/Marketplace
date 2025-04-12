@@ -100,7 +100,23 @@ export default function VendorDashboard() {
   // Fetch vendor profile
   const { data: vendor, isLoading: loadingVendor } = useQuery<Vendor>({
     queryKey: ["/api/user/vendor"],
-    onError: () => {
+    retry: false,
+    queryFn: async () => {
+      const res = await fetch("/api/user/vendor", {
+        credentials: "include"
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch vendor profile");
+      }
+      return await res.json() as Vendor;
+    },
+    onSuccess: (data) => {
+      if (!data) {
+        navigate("/vendor/register");
+      }
+    },
+    onError: (error: Error) => {
       toast({
         title: "Not a vendor",
         description: "You need to register as a vendor first",

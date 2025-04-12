@@ -30,6 +30,11 @@ export function formatUsdPrice(amountInUsd: number | null | undefined): string {
   })}`;
 }
 
+// Format currency (general purpose)
+export function formatCurrency(amountInUsd: number | null | undefined): string {
+  return formatKshPrice(amountInUsd);
+}
+
 // Component for displaying both currencies
 export function PriceDisplay({ priceInUsd, showUsd = true }: { priceInUsd: number | null | undefined, showUsd?: boolean }) {
   return {
