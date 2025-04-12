@@ -132,6 +132,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch vendor" });
     }
   });
+  
+  // Get vendor by user ID
+  app.get("/api/vendors/user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const vendor = await storage.getVendorByUserId(userId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found for this user" });
+      }
+      res.json(vendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendor by user ID" });
+    }
+  });
 
   app.post("/api/vendors", async (req, res) => {
     if (!req.isAuthenticated()) {

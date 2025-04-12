@@ -36,13 +36,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: async (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.fullName || user.username}!`,
       });
-      // Redirect to homepage after successful login
+      
+      // If user is a vendor, check if they have an approved application
+      if (user.isVendor) {
+        try {
+          // Get vendor information
+          const res = await apiRequest("GET", `/api/vendors/user/${user.id}`);
+          const vendor = await res.json();
+          
+          // If vendor application is approved, redirect to vendor dashboard
+          if (vendor && vendor.applicationStatus === "approved") {
+            window.location.href = "/vendor/dashboard";
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking vendor status:", error);
+          // If there's an error, fallback to homepage redirect
+        }
+      }
+      
+      // Otherwise redirect to homepage
       window.location.href = "/";
     },
     onError: (error: Error) => {
