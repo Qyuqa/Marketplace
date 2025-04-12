@@ -419,6 +419,29 @@ export class DatabaseStorage implements IStorage {
     return newProduct;
   }
   
+  async deleteProduct(id: number): Promise<boolean> {
+    try {
+      // Get product details before deleting
+      const product = await this.getProduct(id);
+      if (!product) return false;
+      
+      // Delete the product
+      const result = await db.delete(products).where(eq(products.id, id));
+      
+      // If the deletion was successful, update counts
+      if (result.rowCount > 0) {
+        await this.updateVendorProductCount(product.vendorId, false);
+        await this.updateCategoryProductCount(product.categoryId, false);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      return false;
+    }
+  }
+  
   // Cart methods
   async getCart(userId: number): Promise<{ cart: Cart, items: (CartItem & { product: Product })[] } | undefined> {
     const [cart] = await db.select().from(carts).where(eq(carts.userId, userId));
