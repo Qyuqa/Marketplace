@@ -94,6 +94,8 @@ export default function VendorDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [isNewProductDialogOpen, setIsNewProductDialogOpen] = useState(false);
+  const [isEditProductDialogOpen, setIsEditProductDialogOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
@@ -200,6 +202,32 @@ export default function VendorDashboard() {
     },
   });
   
+  // Edit product mutation
+  const updateProductMutation = useMutation({
+    mutationFn: async (data: { id: number; product: ProductFormValues }) => {
+      const res = await apiRequest("PUT", `/api/products/${data.id}`, data.product);
+      return await res.json() as Product;
+    },
+    onSuccess: () => {
+      setIsEditProductDialogOpen(false);
+      form.reset();
+      setPreviewImage(null);
+      setCurrentProduct(null);
+      refetchProducts();
+      toast({
+        title: "Product updated",
+        description: "Your product has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error updating product",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Handle file upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -240,13 +268,34 @@ export default function VendorDashboard() {
   };
   
   const onProductSubmit = (data: ProductFormValues) => {
-    createProductMutation.mutateAsync(data);
+    if (currentProduct) {
+      updateProductMutation.mutateAsync({ id: currentProduct.id, product: data });
+    } else {
+      createProductMutation.mutateAsync(data);
+    }
   };
   
   const handleDeleteProduct = (productId: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       deleteProductMutation.mutateAsync(productId);
     }
+  };
+  
+  const handleEditProduct = (product: Product) => {
+    setCurrentProduct(product);
+    setPreviewImage(product.imageUrl);
+    form.reset({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      comparePrice: product.comparePrice || undefined,
+      categoryId: product.categoryId,
+      imageUrl: product.imageUrl,
+      inventory: product.inventory || 0,
+      isNew: product.isNew || false,
+      isTrending: product.isTrending || false,
+    });
+    setIsEditProductDialogOpen(true);
   };
   
   if (!user) {
@@ -722,10 +771,7 @@ export default function VendorDashboard() {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => toast({
-                              title: "Edit Product",
-                              description: "Product editing feature coming soon!",
-                            })}
+                            onClick={() => handleEditProduct(product)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -751,6 +797,258 @@ export default function VendorDashboard() {
           </div>
         )}
       </div>
+      
+      {/* Edit Product Dialog */}
+      <Dialog open={isEditProductDialogOpen} onOpenChange={setIsEditProductDialogOpen}>
+        <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update the details of your product.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onProductSubmit)} className="space-y-6 py-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter product name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price (KSh)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="comparePrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Compare Price (KSh) (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0.00" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormDescription>
+                        Original price for showing discounts
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value?.toString()}
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories?.map((category) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="inventory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inventory Quantity</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0" {...field} value={field.value || 0} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter product description" 
+                        className="min-h-32" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Image</FormLabel>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById("product-image-upload-edit")?.click()}
+                          disabled={uploadingImage}
+                          className="w-full"
+                        >
+                          {uploadingImage ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="mr-2 h-4 w-4" />
+                              Change Image
+                            </>
+                          )}
+                        </Button>
+                        <input
+                          id="product-image-upload-edit"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                        />
+                      </div>
+                      
+                      {previewImage && (
+                        <div className="relative w-full h-40 rounded-md overflow-hidden border">
+                          <img
+                            src={previewImage}
+                            alt="Product preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      
+                      <input type="hidden" {...field} />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="isNew"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Mark as New</FormLabel>
+                        <FormDescription>
+                          Shows a "New" badge on the product
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="isTrending"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Mark as Trending</FormLabel>
+                        <FormDescription>
+                          Shows a "Trending" badge on the product
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditProductDialogOpen(false);
+                    setCurrentProduct(null);
+                    form.reset();
+                    setPreviewImage(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateProductMutation.isPending}
+                >
+                  {updateProductMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Product"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
