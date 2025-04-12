@@ -34,6 +34,7 @@ function App() {
             <ProtectedRoute path="/checkout" component={CheckoutPage} />
             <ProtectedRoute path="/vendor/register" component={VendorRegister} />
             <ProtectedRoute path="/vendor/dashboard" component={VendorDashboard} />
+            <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
             <ProtectedRoute path="/profile" component={ProfilePage} />
             <Route path="*">
               <NotFound />
