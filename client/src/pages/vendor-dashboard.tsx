@@ -158,7 +158,12 @@ export default function VendorDashboard() {
   // Create product mutation
   const createProductMutation = useMutation({
     mutationFn: async (data: ProductFormValues) => {
-      const res = await apiRequest("POST", "/api/products", data);
+      // Include the vendorId from the vendor data
+      const productData = {
+        ...data,
+        vendorId: vendor?.id
+      };
+      const res = await apiRequest("POST", "/api/products", productData);
       return await res.json() as Product;
     },
     onSuccess: () => {
@@ -205,7 +210,12 @@ export default function VendorDashboard() {
   // Edit product mutation
   const updateProductMutation = useMutation({
     mutationFn: async (data: { id: number; product: ProductFormValues }) => {
-      const res = await apiRequest("PUT", `/api/products/${data.id}`, data.product);
+      // Include the vendorId from the vendor data
+      const productData = {
+        ...data.product,
+        vendorId: vendor?.id
+      };
+      const res = await apiRequest("PUT", `/api/products/${data.id}`, productData);
       return await res.json() as Product;
     },
     onSuccess: () => {
