@@ -124,6 +124,12 @@ export default function Header() {
                   <DropdownMenuItem>
                     <Link href="/orders" className="w-full">Orders</Link>
                   </DropdownMenuItem>
+                  {user.isAdmin && (
+                    <DropdownMenuItem>
+                      <Link href="/admin/dashboard" className="w-full">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
+                  
                   {user.isVendor ? (
                     <DropdownMenuItem>
                       <Link href="/vendor/dashboard" className="w-full">Vendor Dashboard</Link>
@@ -182,6 +188,12 @@ export default function Header() {
               <>
                 <Link href="/profile" className="text-gray-600 hover:text-primary-600 py-2">My Account</Link>
                 <Link href="/orders" className="text-gray-600 hover:text-primary-600 py-2">Orders</Link>
+                {user.isAdmin && (
+                  <Link href="/admin/dashboard" className="text-gray-600 hover:text-primary-600 py-2">
+                    Admin Dashboard
+                  </Link>
+                )}
+                
                 {user.isVendor ? (
                   <Link href="/vendor/dashboard" className="text-gray-600 hover:text-primary-600 py-2">
                     Vendor Dashboard
