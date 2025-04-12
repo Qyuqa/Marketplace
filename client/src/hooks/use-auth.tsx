@@ -43,25 +43,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome back, ${user.fullName || user.username}!`,
       });
       
+      console.log("User login successful:", user);
+      
       // If user is a vendor, check if they have an approved application
       if (user.isVendor) {
+        console.log("User is a vendor, checking application status");
         try {
           // Get vendor information
           const res = await apiRequest("GET", `/api/vendors/user/${user.id}`);
+          if (!res.ok) {
+            throw new Error(`Failed to fetch vendor: ${res.status} ${res.statusText}`);
+          }
           const vendor = await res.json();
+          console.log("Vendor information:", vendor);
           
           // If vendor application is approved, redirect to vendor dashboard
           if (vendor && vendor.applicationStatus === "approved") {
+            console.log("Vendor is approved, redirecting to dashboard");
             window.location.href = "/vendor/dashboard";
             return;
+          } else {
+            console.log("Vendor not approved:", vendor?.applicationStatus);
           }
         } catch (error) {
           console.error("Error checking vendor status:", error);
           // If there's an error, fallback to homepage redirect
         }
+      } else {
+        console.log("User is not a vendor");
       }
       
       // Otherwise redirect to homepage
+      console.log("Redirecting to homepage");
       window.location.href = "/";
     },
     onError: (error: Error) => {
