@@ -571,6 +571,20 @@ export class MemStorage implements IStorage {
     return product;
   }
   
+  async deleteProduct(id: number): Promise<boolean> {
+    const product = await this.getProduct(id);
+    if (!product) return false;
+    
+    // Remove product
+    this.products.delete(id);
+    
+    // Update counts
+    await this.updateVendorProductCount(product.vendorId, false);
+    await this.updateCategoryProductCount(product.categoryId, false);
+    
+    return true;
+  }
+  
   // Cart methods
   async getCart(userId: number): Promise<{ cart: Cart, items: (CartItem & { product: Product })[] } | undefined> {
     const cart = Array.from(this.carts.values()).find(

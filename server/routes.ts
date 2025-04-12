@@ -246,6 +246,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create product" });
     }
   });
+  
+  app.delete("/api/products/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const productId = parseInt(req.params.id);
+      
+      // Verify the product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Get vendor by user ID to verify ownership
+      const vendor = await storage.getVendorByUserId(req.user.id);
+      if (!vendor) {
+        return res.status(403).json({ message: "User is not a vendor" });
+      }
+      
+      // Verify that the vendor owns the product
+      if (product.vendorId !== vendor.id) {
+        return res.status(403).json({ message: "You don't have permission to delete this product" });
+      }
+      
+      // Delete the product
+      const deleted = await storage.deleteProduct(productId);
+      
+      if (deleted) {
+        res.status(200).json({ message: "Product deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete product" });
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
 
   // Cart
   app.get("/api/cart", async (req, res) => {
