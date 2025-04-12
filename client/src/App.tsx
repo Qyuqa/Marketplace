@@ -12,6 +12,7 @@ import CheckoutPage from "@/pages/checkout-page";
 import AuthPage from "@/pages/auth-page";
 import VendorRegister from "@/pages/vendor-register";
 import VendorDashboard from "@/pages/vendor-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
 import ProfilePage from "@/pages/profile-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";

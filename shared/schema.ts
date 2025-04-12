@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, doublePrecision, js
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table (both customers and vendors)
+// Users table (customers, vendors, and admins)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(),
   isVendor: boolean("is_vendor").default(false).notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   phone: text("phone"),
   photoUrl: text("photo_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -25,6 +26,8 @@ export const vendors = pgTable("vendors", {
   bannerColor: text("banner_color"),
   contactEmail: text("contact_email").notNull(),
   contactPhone: text("contact_phone"),
+  applicationStatus: text("application_status").default("pending").notNull(),
+  applicationNotes: text("application_notes"),
   rating: doublePrecision("rating").default(0),
   reviewCount: integer("review_count").default(0),
   productCount: integer("product_count").default(0),
@@ -122,6 +125,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertVendorSchema = createInsertSchema(vendors).omit({
   id: true,
   userId: true,
+  applicationStatus: true,
+  applicationNotes: true,
   rating: true,
   reviewCount: true,
   productCount: true,
