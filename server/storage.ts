@@ -49,6 +49,7 @@ export interface IStorage {
   getNewProducts(limit?: number): Promise<Product[]>;
   getTrendingProducts(limit?: number): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product>;
   deleteProduct(id: number): Promise<boolean>;
   
   // Cart operations
@@ -605,6 +606,35 @@ export class MemStorage implements IStorage {
     await this.updateCategoryProductCount(product.categoryId, true);
     
     return product;
+  }
+  
+  async updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product> {
+    const product = await this.getProduct(id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    
+    // If category is being changed, update category counts
+    if (data.categoryId && data.categoryId !== product.categoryId) {
+      // Decrement old category count
+      await this.updateCategoryProductCount(product.categoryId, false);
+      // Increment new category count
+      await this.updateCategoryProductCount(data.categoryId, true);
+    }
+    
+    // Update the product with new data
+    const updatedProduct: Product = { 
+      ...product, 
+      ...data,
+      // Keep the original ID
+      id: product.id, 
+      // Preserve rating and review count
+      rating: product.rating,
+      reviewCount: product.reviewCount
+    };
+    
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
   }
   
   async deleteProduct(id: number): Promise<boolean> {
