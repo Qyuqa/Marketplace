@@ -462,6 +462,30 @@ export class DatabaseStorage implements IStorage {
     return newProduct;
   }
   
+  async updateProduct(id: number, data: Partial<InsertProduct>): Promise<Product> {
+    // Get product details before updating
+    const product = await this.getProduct(id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    
+    // If category is being changed, update category counts
+    if (data.categoryId && data.categoryId !== product.categoryId) {
+      // Decrement old category count
+      await this.updateCategoryProductCount(product.categoryId, false);
+      // Increment new category count
+      await this.updateCategoryProductCount(data.categoryId, true);
+    }
+    
+    // Update the product
+    const [updatedProduct] = await db.update(products)
+      .set(data)
+      .where(eq(products.id, id))
+      .returning();
+    
+    return updatedProduct;
+  }
+  
   async deleteProduct(id: number): Promise<boolean> {
     try {
       // Get product details before deleting

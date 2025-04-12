@@ -313,6 +313,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/products/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const productId = parseInt(req.params.id);
+      
+      // Verify the product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Get vendor by user ID to verify ownership
+      const vendor = await storage.getVendorByUserId(req.user.id);
+      if (!vendor) {
+        return res.status(403).json({ message: "User is not a vendor" });
+      }
+      
+      // Verify that the vendor owns the product
+      if (product.vendorId !== vendor.id) {
+        return res.status(403).json({ message: "You don't have permission to update this product" });
+      }
+      
+      // Validate the updated data
+      const validatedData = insertProductSchema.partial().parse(req.body);
+      
+      // Update the product
+      const updatedProduct = await storage.updateProduct(productId, validatedData);
+      
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
   // Cart
   app.get("/api/cart", async (req, res) => {
     if (!req.isAuthenticated()) {
