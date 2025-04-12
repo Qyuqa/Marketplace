@@ -1,4 +1,4 @@
-import type { Express, Request } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -9,6 +9,19 @@ import { setupAuth } from "./auth";
 import { hashPassword, comparePasswords } from "./auth";
 import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
+
+// Middleware to check if user is admin
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
+  
+  next();
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -692,6 +705,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading photo:", error);
       res.status(500).json({ message: "Failed to upload photo" });
+    }
+  });
+
+  // Admin Routes
+  app.get("/api/admin/vendor-applications", isAdmin, async (req, res) => {
+    try {
+      // Get all vendors - we'll filter on the client
+      const vendors = await storage.getAllVendors();
+      res.json(vendors);
+    } catch (error) {
+      console.error("Error fetching vendor applications:", error);
+      res.status(500).json({ message: "Failed to fetch vendor applications" });
+    }
+  });
+
+  app.patch("/api/admin/vendor-applications/:id", isAdmin, async (req, res) => {
+    try {
+      const { status, notes } = req.body;
+      const vendorId = parseInt(req.params.id);
+      
+      // Verify the vendor exists
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      // Validate status
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      // Update vendor application status
+      const updatedVendor = await storage.updateVendorApplicationStatus(vendorId, status, notes);
+      
+      res.json(updatedVendor);
+    } catch (error) {
+      console.error("Error updating vendor application:", error);
+      res.status(500).json({ message: "Failed to update vendor application" });
+    }
+  });
+
+  // Make a user admin (for development purposes)
+  app.post("/api/make-admin", async (req, res) => {
+    try {
+      const { userId, adminSecret } = req.body;
+      
+      // Check admin secret (should be in env variables in production)
+      if (adminSecret !== "qyuqa-admin-secret") {
+        return res.status(403).json({ message: "Invalid admin secret" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user to admin
+      const updatedUser = await storage.makeUserAdmin(userId);
+      
+      res.json({ message: "User is now an admin", user: updatedUser });
+    } catch (error) {
+      console.error("Error making user admin:", error);
+      res.status(500).json({ message: "Failed to update user" });
     }
   });
 
