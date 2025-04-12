@@ -120,20 +120,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch featured vendors" });
     }
   });
-
-  app.get("/api/vendors/:id", async (req, res) => {
-    try {
-      const vendor = await storage.getVendor(parseInt(req.params.id));
-      if (!vendor) {
-        return res.status(404).json({ message: "Vendor not found" });
-      }
-      res.json(vendor);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch vendor" });
-    }
-  });
   
-  // Get vendor by user ID
+  // Get vendor by user ID - must come before the generic /:id route
   app.get("/api/vendors/user/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -144,6 +132,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(vendor);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch vendor by user ID" });
+    }
+  });
+
+  app.get("/api/vendors/:id", async (req, res) => {
+    try {
+      const vendor = await storage.getVendor(parseInt(req.params.id));
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      res.json(vendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendor" });
     }
   });
 
