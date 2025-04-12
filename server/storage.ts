@@ -23,6 +23,7 @@ export interface IStorage {
   updateUserProfile(id: number, data: { fullName: string; email: string; phone?: string }): Promise<User>;
   updateUserPassword(id: number, hashedPassword: string): Promise<void>;
   updateUserPhoto(id: number, photoUrl: string): Promise<void>;
+  makeUserAdmin(userId: number): Promise<User>;
   
   // Vendor operations
   getVendor(id: number): Promise<Vendor | undefined>;
@@ -32,6 +33,7 @@ export interface IStorage {
   getFeaturedVendors(limit?: number): Promise<Vendor[]>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   updateVendorProductCount(vendorId: number, increment: boolean): Promise<void>;
+  updateVendorApplicationStatus(vendorId: number, status: string, notes?: string): Promise<Vendor>;
   
   // Category operations
   getCategory(id: number): Promise<Category | undefined>;
@@ -441,6 +443,17 @@ export class MemStorage implements IStorage {
     this.users.set(id, user);
   }
   
+  async makeUserAdmin(userId: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    user.isAdmin = true;
+    this.users.set(userId, user);
+    return user;
+  }
+  
   // Vendor methods
   async getVendor(id: number): Promise<Vendor | undefined> {
     return this.vendors.get(id);
@@ -490,6 +503,29 @@ export class MemStorage implements IStorage {
         : Math.max(0, vendor.productCount - 1);
       this.vendors.set(vendorId, vendor);
     }
+  }
+  
+  async updateVendorApplicationStatus(vendorId: number, status: string, notes?: string): Promise<Vendor> {
+    const vendor = await this.getVendor(vendorId);
+    if (!vendor) {
+      throw new Error('Vendor not found');
+    }
+    
+    // Update vendor status
+    vendor.applicationStatus = status;
+    
+    // Add notes if provided
+    if (notes) {
+      vendor.applicationNotes = notes;
+    }
+    
+    // If approved, set verified to true
+    if (status === 'approved') {
+      vendor.verified = true;
+    }
+    
+    this.vendors.set(vendorId, vendor);
+    return vendor;
   }
   
   // Category methods

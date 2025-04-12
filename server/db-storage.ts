@@ -301,6 +301,19 @@ export class DatabaseStorage implements IStorage {
       .set({ photoUrl }) // This might need to be added to the schema
       .where(eq(users.id, id));
   }
+
+  async makeUserAdmin(userId: number): Promise<User> {
+    await db.update(users)
+      .set({ isAdmin: true })
+      .where(eq(users.id, userId));
+      
+    const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
+    if (!updatedUser) {
+      throw new Error('User not found after update');
+    }
+    
+    return updatedUser;
+  }
   
   // Vendor methods
   async getVendor(id: number): Promise<Vendor | undefined> {
@@ -347,6 +360,36 @@ export class DatabaseStorage implements IStorage {
     await db.update(vendors)
       .set({ productCount: newCount })
       .where(eq(vendors.id, vendorId));
+  }
+  
+  async updateVendorApplicationStatus(vendorId: number, status: string, notes?: string): Promise<Vendor> {
+    const vendor = await this.getVendor(vendorId);
+    if (!vendor) {
+      throw new Error('Vendor not found');
+    }
+    
+    const updateData: any = { applicationStatus: status };
+    
+    // Add notes if provided
+    if (notes) {
+      updateData.applicationNotes = notes;
+    }
+    
+    // If approved, set verified to true
+    if (status === 'approved') {
+      updateData.verified = true;
+    }
+    
+    const [updatedVendor] = await db.update(vendors)
+      .set(updateData)
+      .where(eq(vendors.id, vendorId))
+      .returning();
+      
+    if (!updatedVendor) {
+      throw new Error('Failed to update vendor application status');
+    }
+    
+    return updatedVendor;
   }
   
   // Category methods
