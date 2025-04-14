@@ -62,7 +62,7 @@ export const queryClient = new QueryClient({
  */
 export async function forceLogout() {
   try {
-    console.log("Starting force logout process...");
+    console.log("Starting nuclear logout process...");
     
     // 1. First clear all client-side state
     queryClient.clear();
@@ -74,31 +74,54 @@ export async function forceLogout() {
     sessionStorage.clear();
     console.log("Cleared sessionStorage");
     
-    // 2. Clear the session cookie directly - do this first in case the fetch fails
-    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    console.log("Cleared session cookie");
-    
-    // 3. Make the server-side logout request - don't await this to prevent blocking
-    fetch('/api/logout', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(e => {
-      console.error("Error during logout API call, but continuing:", e);
+    // 2. Clear all cookies - both session and anything else
+    document.cookie.split(";").forEach(function(c) {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    console.log("Sent logout request");
+    console.log("Cleared all cookies");
     
-    // 4. Brief delay to let any pending operations complete
-    setTimeout(() => {
-      console.log("Reloading page...");
-      // 5. Force a complete reload of the application - with cache busting
-      window.location.href = '/?logout=' + Date.now();
-    }, 300);
+    // 3. Try multiple approaches to clear session cookie specifically
+    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = 'connect.sid=; Path=/; Domain=.replit.dev; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = 'connect.sid=; Path=/; Domain=replit.dev; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = 'connect.sid=; Max-Age=0;';
+    console.log("Cleared session cookie with multiple approaches");
+    
+    // 4. To get around potential stale service workers, unregister them
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log("Unregistered service worker");
+        }
+      }).catch(err => console.error("Error unregistering service workers:", err));
+    }
+    
+    // 5. Make multiple server-side logout requests in parallel to maximize chances
+    Promise.allSettled([
+      // Standard API endpoint
+      fetch('/api/logout', { method: 'POST', credentials: 'include' }),
+      // Also try backup endpoint (the one used by the server HTML)
+      fetch('/api/logout-action', { method: 'POST', credentials: 'include' }),
+      // Try a direct GET to the force-logout page
+      fetch('/force-logout', { method: 'GET', credentials: 'include' })
+    ]).catch(e => {
+      console.error("Error during logout API calls, but continuing:", e);
+    }).finally(() => {
+      console.log("Sent all logout requests");
+    
+      // 6. Brief delay to let any pending operations complete
+      setTimeout(() => {
+        console.log("Preparing for full page reload...");
+        
+        // 7. Force a complete reload of the application - with aggressive cache busting
+        window.location.href = "/?logout=" + Date.now() + "&purge=cache";
+      }, 500);
+    });
   } catch (err) {
     console.error('Force logout error:', err);
     // If an error occurs during logout, still force reload after a brief delay
     alert("An error occurred during logout. The page will reload.");
-    setTimeout(() => {
-      window.location.href = '/?logout=' + Date.now();
-    }, 1000);
+    window.location.href = "/?logout=" + Date.now() + "&purge=cache";
   }
 }

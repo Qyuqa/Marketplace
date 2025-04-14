@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { forceLogout } from "@/lib/queryClient";
 
 export function ForceLogoutButton() {
   const { user } = useAuth();
@@ -14,13 +15,12 @@ export function ForceLogoutButton() {
   const handleLogout = () => {
     // Show toast to acknowledge the action
     toast({
-      title: "Force logout initiated",
-      description: "The app will reload and sign you out...",
+      title: "Nuclear logout initiated",
+      description: "The app will reload and sign you out completely...",
     });
     
-    // The most reliable way to log out is to access our standalone HTML page
-    // This bypasses all React state and directly opens a page that handles everything
-    window.location.href = "/force-logout";
+    // Use our enhanced nuclear logout that tries multiple approaches
+    forceLogout();
   };
   
   return (
@@ -31,7 +31,7 @@ export function ForceLogoutButton() {
         onClick={handleLogout}
         className="bg-white text-red-600 border-red-300 hover:bg-red-50 shadow-md"
       >
-        Force Logout
+        Nuclear Logout
       </Button>
     </div>
   );

@@ -5,7 +5,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { getQueryFn, apiRequest, queryClient, forceLogout } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
@@ -117,15 +117,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Use our most reliable logout method - redirect to the dedicated HTML page
-      window.location.href = "/force-logout";
-      // This is a fake promise that never resolves since we're redirecting
-      return new Promise<void>(() => {});
+      // Use our nuclear logout function that tries multiple approaches
+      // This is the most reliable way to handle logout
+      return forceLogout();
     },
-    // These handlers won't run due to the immediate redirect
+    // These handlers won't run due to the page reload in forceLogout
     onSuccess: () => {
       // Will not execute
-      queryClient.clear();
+      console.log("Logout successful");
     },
     onError: (error: Error) => {
       // Will not execute
