@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ShoppingCart, 
   Heart, 
@@ -32,14 +33,44 @@ export default function Header() {
   
   const { user, logoutMutation } = useAuth();
   const { cartItems } = useCart();
+  const { toast } = useToast();
   
   const toggleMobileSearch = () => setShowMobileSearch(prev => !prev);
   const toggleMobileMenu = () => setShowMobileMenu(prev => !prev);
   
   const toggleCartDrawer = () => setShowCartDrawer(prev => !prev);
   
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    try {
+      // Make the logout request directly
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Clear any cached data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Show success message
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+      
+      // Force a complete page reload to reset all state
+      window.location.href = '/';
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error during logout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
