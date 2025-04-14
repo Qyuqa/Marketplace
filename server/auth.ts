@@ -22,10 +22,22 @@ export async function hashPassword(password: string) {
 }
 
 export async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    const [hashed, salt] = stored.split(".");
+    if (!hashed || !salt) {
+      console.error("Invalid password format, missing hash or salt");
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    console.log(`Comparing passwords for hash length: ${hashedBuf.length}`);
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    return false;
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -58,7 +70,14 @@ export function setupAuth(app: Express) {
         }
         
         // Normal password check for regular users
-        if (user.password.includes('.')) {
+        if (user.password === 'password.salt') {
+          // Special case for demo data - consider anything with password.salt to be demo data
+          if (password === 'password') {
+            return done(null, user);
+          } else {
+            return done(null, false);
+          }
+        } else if (user.password.includes('.')) {
           // Properly hashed password
           if (!(await comparePasswords(password, user.password))) {
             return done(null, false);
