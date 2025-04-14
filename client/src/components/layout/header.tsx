@@ -30,8 +30,7 @@ export default function Header() {
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [location, setLocation] = useLocation();
   
-  // Force component to re-render when user authentication changes
-  const { user, logoutMutation, isLoading } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const { cartItems } = useCart();
   
   const toggleMobileSearch = () => setShowMobileSearch(prev => !prev);
@@ -40,8 +39,7 @@ export default function Header() {
   const toggleCartDrawer = () => setShowCartDrawer(prev => !prev);
   
   const handleLogout = () => {
-    // Instead of using the mutation, navigate to dedicated logout page
-    window.location.href = '/logout';
+    logoutMutation.mutate();
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;

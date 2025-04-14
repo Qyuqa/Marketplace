@@ -118,60 +118,9 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    console.log("Logout request received");
-    console.log("Is authenticated before logout:", req.isAuthenticated());
-    console.log("Session ID:", req.sessionID);
-    console.log("Session data:", req.session);
-    
-    if (!req.isAuthenticated()) {
-      console.log("User was not authenticated, returning 200 anyway");
-      return res.status(200).json({ message: "Not logged in" });
-    }
-    
-    // First save the user info for logging
-    const userId = req.user?.id;
-    const username = req.user?.username;
-    
-    // Perform logout
-    req.logout(function(err) {
-      if (err) {
-        console.error("Error in logout:", err);
-        return next(err);
-      }
-      
-      // Then destroy the session
-      if (req.session) {
-        req.session.destroy(function(err) {
-          if (err) {
-            console.error("Error destroying session:", err);
-            return next(err);
-          }
-          
-          // Clear cookie
-          res.clearCookie('connect.sid', { 
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax'
-          });
-          
-          console.log(`User ${username} (ID: ${userId}) successfully logged out`);
-          console.log("Is authenticated after logout:", req.isAuthenticated());
-          
-          return res.status(200).json({ success: true, message: "Logged out successfully" });
-        });
-      } else {
-        console.log("No session to destroy");
-        // Clear cookie anyway
-        res.clearCookie('connect.sid', { 
-          path: '/',
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-        
-        return res.status(200).json({ success: true, message: "Logged out successfully (no session)" });
-      }
+    req.logout((err) => {
+      if (err) return next(err);
+      res.sendStatus(200);
     });
   });
 
