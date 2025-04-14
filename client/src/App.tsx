@@ -18,7 +18,6 @@ import LogoutPage from "@/pages/logout-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { PWAInstallBanner } from "@/components/pwa-install-banner";
-import { ForceLogoutButton } from "@/components/force-logout-button";
 import { useEffect } from "react";
 import { queryClient } from "@/lib/queryClient";
 
@@ -115,7 +114,6 @@ function App() {
         <Footer />
       </div>
       <PWAInstallBanner />
-      <ForceLogoutButton />
       <Toaster />
     </>
   );
