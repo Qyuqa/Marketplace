@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -10,6 +10,15 @@ export default function LogoutPage() {
   useEffect(() => {
     const performLogout = async () => {
       try {
+        // IMPORTANT: First clear the query cache, especially the user data
+        queryClient.clear();
+        
+        // IMPORTANT: Clear all localStorage items that may persist user state
+        localStorage.clear();
+        
+        // IMPORTANT: Clear sessionStorage data
+        sessionStorage.clear();
+        
         // Make a single logout request
         const response = await apiRequest("POST", "/api/logout");
         
@@ -20,9 +29,9 @@ export default function LogoutPage() {
             description: "You have been successfully logged out",
           });
           
-          // Redirect to home page after a short delay
+          // Force a complete page reload to clear all application state
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.replace("/");
           }, 1000);
         } else {
           setError("Failed to logout. Please try again.");
