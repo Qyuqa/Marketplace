@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, forceLogout } from "@/lib/queryClient";
 import QyuqaLogo from "@/assets/qyuqa-logo.png";
 
 export default function Header() {
@@ -41,12 +41,18 @@ export default function Header() {
   
   const toggleCartDrawer = () => setShowCartDrawer(prev => !prev);
   
-  const handleLogout = (e: React.MouseEvent) => {
+  const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Instead of making the API call here, redirect to a dedicated logout page
-    window.location.href = "/logout";
+    // Display logout toast
+    toast({
+      title: "Logging out...",
+      description: "Please wait while we log you out",
+    });
+    
+    // Use the direct forceLogout function instead of going through the /logout page
+    await forceLogout();
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;

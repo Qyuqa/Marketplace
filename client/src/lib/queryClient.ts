@@ -55,3 +55,32 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * Force logout the user - this is a more aggressive approach
+ * that bypasses the normal logout flow when the regular one isn't working
+ */
+export async function forceLogout() {
+  try {
+    // 1. First clear all client-side state
+    queryClient.clear();
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // 2. Make the server-side logout request
+    await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    
+    // 3. Clear the session cookie directly
+    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    
+    // 4. Force a complete reload of the application
+    window.location.href = '/?logout=' + Date.now();
+  } catch (err) {
+    console.error('Force logout error:', err);
+    // If an error occurs during logout, still force reload
+    window.location.href = '/?logout=' + Date.now();
+  }
+}
