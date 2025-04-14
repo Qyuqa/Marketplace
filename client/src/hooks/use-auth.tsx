@@ -127,8 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "You have been successfully logged out.",
       });
       
-      // Use Wouter's navigation instead of window.location for a cleaner SPA experience
-      setLocation("/");
+      // Force a hard redirect to home page - this ensures we completely reset the application state
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 300); // Small delay to ensure toast is visible
     },
     onError: (error: Error) => {
       toast({
@@ -137,8 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       
-      // Even on error, try to navigate to home page
-      setLocation("/");
+      // Even on error, force redirect to homepage
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 300);
     },
   });
 
