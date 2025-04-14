@@ -51,9 +51,8 @@ export default function Header() {
       description: "Please wait...",
     });
     
-    // Use the DIRECT SERVER-GENERATED logout page to completely bypass any React issues
-    // The server will generate HTML with embedded JavaScript that handles the logout
-    window.location.href = '/force-logout';
+    // Use the logout mutation from useAuth which now uses our nuclear logout method
+    logoutMutation.mutate();
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
