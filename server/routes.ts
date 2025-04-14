@@ -5,8 +5,9 @@ import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
-import { hashPassword, comparePasswords } from "./auth";
+// Import JWT auth instead of session-based auth
+import { setupJwtAuth, requireAuth, isAdmin as jwtIsAdmin, isVendor } from "./jwt-auth";
+import { hashPassword, comparePasswords } from "./jwt-auth";
 import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -24,8 +25,8 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication routes
-  setupAuth(app);
+  // Setup JWT authentication routes
+  setupJwtAuth(app);
   
   // Setup file upload directory
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
