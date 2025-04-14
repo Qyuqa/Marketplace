@@ -45,9 +45,10 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
+      // For most queries, we use conservative caching
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 60000, // 1 minute stale time
       retry: false,
     },
     mutations: {
@@ -142,10 +143,32 @@ export async function forceLogout() {
       });
       console.log("Standard logout request sent successfully");
       
+      // Special fix: check auth status immediately and update cache
+      const checkResponse = await fetch('/api/check-session', {
+        cache: 'no-store',
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
+      const authStatus = await checkResponse.json();
+      console.log("Auth status after logout:", authStatus);
+      
+      // Force update the TanStack Query cache with null for user
+      queryClient.setQueryData(["/api/user"], null);
+      
+      // Force a background refetch of user status
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       // Run the cookie clearing process again after server responses
       clearCookies();
     } catch (e) {
       console.error("Error during logout API calls, but continuing:", e);
+      // Even if there's an error, still update cache
+      queryClient.setQueryData(["/api/user"], null);
     }
     
     console.log("All logout processes completed");

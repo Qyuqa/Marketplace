@@ -46,8 +46,13 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'qyuqa.sid', // Custom cookie name to make it easier to identify
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
+      path: '/', // Cookie is available for all paths
+      secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
+      sameSite: 'lax' // Allows better cross-site navigation
     }
   };
 
