@@ -60,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // If vendor application is approved, redirect to vendor dashboard
           if (vendor && vendor.applicationStatus === "approved") {
             console.log("Vendor is approved, redirecting to dashboard");
-            window.location.href = "/vendor/dashboard";
+            if (window.location.pathname !== "/vendor/dashboard") {
+              window.location.replace("/vendor/dashboard");
+            }
             return;
           } else {
             console.log("Vendor not approved:", vendor?.applicationStatus);
@@ -73,9 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("User is not a vendor");
       }
       
-      // Otherwise redirect to homepage
+      // Otherwise redirect to homepage, but only if we're not already there
       console.log("Redirecting to homepage");
-      window.location.href = "/";
+      if (window.location.pathname !== "/") {
+        window.location.replace("/");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -97,8 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: `Welcome to Qyuqa, ${user.fullName || user.username}!`,
       });
-      // Redirect to homepage after successful registration
-      window.location.href = "/";
+      // Redirect to homepage after successful registration, only if we're not already there
+      if (window.location.pathname !== "/") {
+        window.location.replace("/");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -121,8 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      // Redirect to homepage after successful logout
-      window.location.href = "/";
+      // Use window.location.replace instead of window.location.href to prevent redirect loops
+      if (window.location.pathname !== "/") {
+        window.location.replace("/");
+      }
     },
     onError: (error: Error) => {
       toast({
