@@ -40,7 +40,8 @@ export default function Header() {
   const toggleCartDrawer = () => setShowCartDrawer(prev => !prev);
   
   const handleLogout = () => {
-    logoutMutation.mutate();
+    // Instead of using the mutation, navigate to dedicated logout page
+    window.location.href = '/logout';
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;

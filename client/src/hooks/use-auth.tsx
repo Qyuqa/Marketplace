@@ -7,6 +7,7 @@ import {
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { MutateOptions } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 
 type AuthContextType = {
@@ -14,7 +15,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
+  logoutMutation: UseMutationResult<boolean, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
 };
 
@@ -113,33 +114,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/logout");
-      return response.ok;
-    },
-    onSettled: (success, error) => {
-      if (error) {
-        toast({
-          title: "Logout failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out.",
-        });
-      }
+      // Log before the request
+      console.log("Starting logout request...");
       
-      // Always update cache and redirect regardless of success/error
-      // Clear all cached data
+      try {
+        // Use fetch directly for better control
+        const response = await fetch("/api/logout", {
+          method: "POST",
+          credentials: "include", // Important: include credentials (cookies)
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        console.log("Logout response:", response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`Logout failed with status: ${response.status}`);
+        }
+        
+        // Try to get user info to check if still logged in
+        const checkResponse = await fetch("/api/user", {
+          credentials: "include"
+        });
+        
+        console.log("Post-logout user check:", checkResponse.status);
+        
+        return true;
+      } catch (err) {
+        console.error("Logout error:", err);
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      console.log("Logout mutation succeeded, clearing cache...");
+      // First update React Query cache
+      queryClient.setQueryData(["/api/user"], null);
+      // Invalidate ALL queries to ensure a clean slate
       queryClient.clear();
       
-      // Force navigation to homepage with a full page reload 
-      // This is the most reliable way to reset the application state
+      // Show success toast
+      toast({
+        title: "Logged out successfully",
+        description: "You have been successfully logged out. Redirecting...",
+      });
+      
+      console.log("Preparing to redirect...");
+      
+      // Force a complete browser refresh to clear everything
       setTimeout(() => {
-        // Using window.location.replace ensures we don't add to browser history
-        window.location.replace('/');
-      }, 300);
+        console.log("Redirecting now...");
+        // The most aggressive approach - navigate away then reload
+        window.location.href = '/';
+        window.location.reload();
+      }, 1000); // Longer delay for debugging
+    },
+    onError: (error: Error) => {
+      console.error("Logout mutation error:", error);
+      
+      toast({
+        title: "Logout problem",
+        description: error.message,
+        variant: "destructive",
+      });
+      
+      // Try a manual redirect with refresh anyway
+      setTimeout(() => {
+        console.log("Redirecting after error...");
+        window.location.href = '/';
+        window.location.reload();
+      }, 1000);
     }
   });
 
