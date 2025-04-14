@@ -117,6 +117,107 @@ export function setupAuth(app: Express) {
     res.status(200).json(req.user);
   });
 
+  // DIRECT HTML LOGOUT HANDLER
+  // This is a special endpoint that generates a standalone HTML page
+  // to destroy all sessions more aggressively
+  app.get("/force-logout", (req, res) => {
+    // Create a dedicated HTML page for logout
+    const logoutHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Logging out...</title>
+      <style>
+        body {
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+          text-align: center;
+        }
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid rgba(0, 0, 0, 0.1);
+          border-radius: 50%;
+          border-left-color: #000;
+          animation: spin 1s linear infinite;
+          margin-bottom: 20px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="spinner"></div>
+      <h2>Logging out...</h2>
+      <p>Please wait while we log you out of your account.</p>
+      <script>
+        // Client-side logout
+        function clearClientState() {
+          // Clear localStorage
+          try { localStorage.clear(); } catch(e) { console.error(e); }
+          
+          // Clear sessionStorage  
+          try { sessionStorage.clear(); } catch(e) { console.error(e); }
+          
+          // Clear all cookies
+          document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+          
+          // Special delete for connect.sid
+          document.cookie = "connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        }
+        
+        // Server-side logout
+        fetch('/api/logout-action', { 
+          method: 'POST',
+          credentials: 'include'
+        }).finally(() => {
+          // Clear client state regardless of server response
+          clearClientState();
+          
+          // Add some delay for user experience
+          setTimeout(() => {
+            window.location.href = '/?nocache=' + Date.now();
+          }, 1500);
+        });
+      </script>
+    </body>
+    </html>
+    `;
+    
+    // Send the HTML directly
+    res.status(200).send(logoutHtml);
+  });
+  
+  // Separate API endpoint for the actual server-side logout action
+  app.post("/api/logout-action", (req, res, next) => {
+    // First logout the user
+    req.logout((err) => {
+      if (err) return next(err);
+      
+      // Then completely destroy the session
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error("Error destroying session:", sessionErr);
+        }
+        
+        // Clear the cookie by setting an expired cookie
+        res.clearCookie('connect.sid');
+        
+        res.sendStatus(200);
+      });
+    });
+  });
+  
+  // Keep the original endpoint for backward compatibility
   app.post("/api/logout", (req, res, next) => {
     // First logout the user
     req.logout((err) => {
@@ -126,8 +227,6 @@ export function setupAuth(app: Express) {
       req.session.destroy((sessionErr) => {
         if (sessionErr) {
           console.error("Error destroying session:", sessionErr);
-          // Even if there's an error destroying the session, we still want to 
-          // consider the logout successful since req.logout() worked
         }
         
         // Clear the cookie by setting an expired cookie

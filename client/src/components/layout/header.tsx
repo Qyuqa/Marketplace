@@ -51,9 +51,9 @@ export default function Header() {
       description: "Please wait...",
     });
     
-    // Redirect to the standalone HTML logout page (outside of React)
-    // This is the most reliable approach as it doesn't rely on React state or components
-    window.location.href = '/logout.html';
+    // Use the DIRECT SERVER-GENERATED logout page to completely bypass any React issues
+    // The server will generate HTML with embedded JavaScript that handles the logout
+    window.location.href = '/force-logout';
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
