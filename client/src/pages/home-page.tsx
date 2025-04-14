@@ -4,6 +4,7 @@ import VendorSection from "@/components/home/vendor-section";
 import ProductSection from "@/components/home/product-section";
 import BecomeVendor from "@/components/home/become-vendor";
 import PromoSection from "@/components/home/promo-section";
+import { EmergencyLogout } from "@/components/emergency-logout";
 
 export default function HomePage() {
   return (
@@ -14,6 +15,9 @@ export default function HomePage() {
       <ProductSection />
       <BecomeVendor />
       <PromoSection />
+      
+      {/* This component only shows when ?emergency-logout is in the URL */}
+      <EmergencyLogout />
     </div>
   );
 }
