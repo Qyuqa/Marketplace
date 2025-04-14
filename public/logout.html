@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logging Out...</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #111827;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #111827;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: #ef4444;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Logging Out</h1>
+    <div class="spinner"></div>
+    <p id="status">Please wait while we log you out...</p>
+    <p id="error" class="error" style="display: none;"></p>
+  </div>
+
+  <script>
+    (function() {
+      // This is a standalone logout page that works outside of React
+      // It forcefully clears all client-side state and makes the logout request
+
+      const statusEl = document.getElementById('status');
+      const errorEl = document.getElementById('error');
+      
+      // Show error
+      function showError(message) {
+        statusEl.textContent = 'Logout failed';
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+      }
+
+      // Attempt to clear all possible session data
+      function clearAllClientState() {
+        try {
+          // Clear localStorage
+          localStorage.clear();
+          console.log('localStorage cleared');
+          
+          // Clear sessionStorage
+          sessionStorage.clear();
+          console.log('sessionStorage cleared');
+          
+          // Clear all cookies
+          document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+          console.log('Cookies cleared');
+          
+          return true;
+        } catch (err) {
+          console.error('Error clearing client state:', err);
+          return false;
+        }
+      }
+
+      // Make the logout request
+      async function performLogout() {
+        try {
+          // First clear all client state
+          clearAllClientState();
+          
+          // Make the server-side logout request
+          const response = await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            statusEl.textContent = 'Logout successful! Redirecting...';
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1000);
+          } else {
+            // If the server didn't respond with 200, still attempt to clean up
+            // and redirect, because clearing the client state might be enough
+            showError('Server error during logout. Redirecting anyway...');
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Logout error:', err);
+          showError('An error occurred during logout. Redirecting anyway...');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        }
+      }
+
+      // Start the logout process immediately when the page loads
+      performLogout();
+    })();
+  </script>
+</body>
+</html>

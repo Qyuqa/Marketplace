@@ -48,26 +48,12 @@ export default function Header() {
     // Display logout toast
     toast({
       title: "Logging out...",
-      description: "Please wait while we log you out",
+      description: "Please wait...",
     });
     
-    try {
-      // Use the direct forceLogout function - don't use await here to prevent blocking
-      forceLogout();
-    } catch (error) {
-      console.error("Error in handleLogout:", error);
-      // Handle error gracefully
-      toast({
-        title: "Logout Error",
-        description: "There was a problem logging out. The page will reload.",
-        variant: "destructive"
-      });
-      
-      // Force reload anyway after a slight delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    }
+    // Redirect to the standalone HTML logout page (outside of React)
+    // This is the most reliable approach as it doesn't rely on React state or components
+    window.location.href = '/logout.html';
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
