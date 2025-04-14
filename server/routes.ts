@@ -27,6 +27,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
+  // Special route to help with force logout situations
+  app.get('/force-logout', (req, res) => {
+    console.log("Force logout route accessed");
+    
+    // First logout the user
+    if (req.isAuthenticated()) {
+      req.logout((err) => {
+        if (err) {
+          console.error("Error during req.logout:", err);
+        }
+      });
+    }
+    
+    // Completely destroy the session regardless of auth status
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+      });
+    }
+    
+    // Clear cookies with multiple approaches
+    res.clearCookie('connect.sid');
+    res.clearCookie('connect.sid', { path: '/' });
+    res.clearCookie('connect.sid', { path: '/', domain: req.hostname });
+    
+    // Set-Cookie with expires in the past to force deletion
+    res.setHeader('Set-Cookie', [
+      'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;',
+      'connect.sid=; Max-Age=0; Path=/;'
+    ]);
+    
+    // Send response with cache control
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // Return success JSON
+    res.json({ success: true, message: "Forced logout successful" });
+  });
+  
   // Setup file upload directory
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
   if (!fs.existsSync(uploadsDir)) {

@@ -62,7 +62,7 @@ export const queryClient = new QueryClient({
  */
 export async function forceLogout() {
   try {
-    console.log("Starting nuclear logout process...");
+    console.log("Starting ultra-nuclear logout process...");
     
     // 1. First clear all client-side state
     queryClient.clear();
@@ -75,53 +75,95 @@ export async function forceLogout() {
     console.log("Cleared sessionStorage");
     
     // 2. Clear all cookies - both session and anything else
-    document.cookie.split(";").forEach(function(c) {
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    console.log("Cleared all cookies");
+    // This aggressive approach tries different techniques
+    const clearCookies = () => {
+      // Standard approach to clear all cookies
+      document.cookie.split(";").forEach(function(c) {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Try with different domains and paths to cover all possibilities
+      const cookiesToClear = ['connect.sid', 'sessionid', 'session', 'auth', 'logged_in'];
+      const domains = ['', window.location.hostname, '.' + window.location.hostname, 'replit.dev', '.replit.dev'];
+      const paths = ['/', '/api', ''];
+      
+      domains.forEach(domain => {
+        paths.forEach(path => {
+          cookiesToClear.forEach(cookieName => {
+            // Clear cookie with domain and path
+            document.cookie = `${cookieName}=; Path=${path}; ${domain ? 'Domain=' + domain + ';' : ''} Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0; Secure; SameSite=Strict`;
+          });
+        });
+      });
+    };
     
-    // 3. Try multiple approaches to clear session cookie specifically
-    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    document.cookie = 'connect.sid=; Path=/; Domain=.replit.dev; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    document.cookie = 'connect.sid=; Path=/; Domain=replit.dev; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    document.cookie = 'connect.sid=; Max-Age=0;';
-    console.log("Cleared session cookie with multiple approaches");
+    // Run the cookie clearing process
+    clearCookies();
+    console.log("Cleared all cookies with multiple approaches");
     
-    // 4. To get around potential stale service workers, unregister them
+    // 3. To get around potential stale service workers, unregister them
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
         for (let registration of registrations) {
-          registration.unregister();
+          await registration.unregister();
           console.log("Unregistered service worker");
         }
-      }).catch(err => console.error("Error unregistering service workers:", err));
+      } catch (err) {
+        console.error("Error unregistering service workers:", err);
+      }
     }
     
-    // 5. Make multiple server-side logout requests in parallel to maximize chances
-    Promise.allSettled([
-      // Standard API endpoint
-      fetch('/api/logout', { method: 'POST', credentials: 'include' }),
-      // Also try backup endpoint (the one used by the server HTML)
-      fetch('/api/logout-action', { method: 'POST', credentials: 'include' }),
-      // Try a direct GET to the force-logout page
-      fetch('/force-logout', { method: 'GET', credentials: 'include' })
-    ]).catch(e => {
+    // 4. Make multiple server-side logout requests in sequence for maximum reliability
+    try {
+      // First try the nuclear logout endpoint
+      await fetch('/api/logout-action', { 
+        method: 'POST', 
+        credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      console.log("Nuclear logout request sent successfully");
+      
+      // Then standard logout endpoint
+      await fetch('/api/logout', { 
+        method: 'POST', 
+        credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      console.log("Standard logout request sent successfully");
+      
+      // Run the cookie clearing process again after server responses
+      clearCookies();
+    } catch (e) {
       console.error("Error during logout API calls, but continuing:", e);
-    }).finally(() => {
-      console.log("Sent all logout requests");
+    }
     
-      // 6. Brief delay to let any pending operations complete
-      setTimeout(() => {
-        console.log("Preparing for full page reload...");
-        
-        // 7. Force a complete reload of the application - with aggressive cache busting
-        window.location.href = "/?logout=" + Date.now() + "&purge=cache";
-      }, 500);
-    });
+    console.log("All logout processes completed");
+    
+    // 5. Brief delay to let any pending operations complete
+    setTimeout(() => {
+      console.log("Preparing for full page reload with cache busting...");
+      
+      // 6. Force a complete reload of the application - with aggressive cache busting
+      // Use location.replace to prevent back button from restoring the session
+      window.location.replace(
+        `/?logout=${Date.now()}&purge=${Math.random().toString(36).substring(2, 15)}&nocache=true`
+      );
+    }, 300);
   } catch (err) {
     console.error('Force logout error:', err);
     // If an error occurs during logout, still force reload after a brief delay
-    alert("An error occurred during logout. The page will reload.");
-    window.location.href = "/?logout=" + Date.now() + "&purge=cache";
+    console.log("Encountered error, forcing reload anyway");
+    window.location.replace(`/?logout=${Date.now()}&error=true`);
   }
 }

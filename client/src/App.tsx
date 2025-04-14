@@ -29,13 +29,52 @@ function SessionManager() {
   useEffect(() => {
     // Check if there's a logout parameter in the URL
     if (location.includes('logout=')) {
-      console.log('Logout parameter detected in URL, clearing session data');
+      console.log('Logout parameter detected in URL, performing deep session cleaning');
+      
+      // Do an additional server-side session verification
+      fetch('/api/check-session')
+        .then(res => res.json())
+        .then(data => {
+          console.log('Session check after logout:', data);
+          
+          // If somehow still authenticated, try one more logout
+          if (data.authenticated) {
+            console.log('Still authenticated, trying another logout');
+            
+            // Make one more logout request
+            fetch('/api/logout-action', {
+              method: 'POST',
+              credentials: 'include',
+              cache: 'no-store',
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            }).then(() => {
+              // Force a page reload to ensure everything is reset
+              window.location.reload();
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Error checking session:', err);
+        });
       
       // Clear all client-side state
       queryClient.clear();
       localStorage.clear();
       sessionStorage.clear();
+      
+      // Clear all cookies with multiple approaches
+      document.cookie.split(";").forEach(function(c) {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Specifically target the session cookie
       document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'connect.sid=; Path=/; Domain=' + window.location.hostname + '; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'connect.sid=; Max-Age=0;';
       
       // Clear the URL parameter without reloading (cleaner URL)
       window.history.replaceState({}, document.title, '/');

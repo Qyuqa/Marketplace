@@ -218,9 +218,14 @@ export function setupAuth(app: Express) {
   
   // Separate API endpoint for the actual server-side logout action
   app.post("/api/logout-action", (req, res, next) => {
+    console.log("Nuclear logout action initiated");
+    
     // First logout the user
     req.logout((err) => {
-      if (err) return next(err);
+      if (err) {
+        console.error("Error during req.logout:", err);
+        return next(err);
+      }
       
       // Then completely destroy the session
       req.session.destroy((sessionErr) => {
@@ -228,9 +233,23 @@ export function setupAuth(app: Express) {
           console.error("Error destroying session:", sessionErr);
         }
         
-        // Clear the cookie by setting an expired cookie
+        // Clear the cookie by setting an expired cookie with multiple approaches
         res.clearCookie('connect.sid');
         
+        // More aggressive cookie clearing with various domain options
+        res.clearCookie('connect.sid', { path: '/' });
+        res.clearCookie('connect.sid', { path: '/', domain: req.hostname });
+        
+        // Set max-age to 0 to immediately expire
+        res.cookie('connect.sid', '', { 
+          maxAge: 0,
+          expires: new Date(0),
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict'
+        });
+        
+        console.log("Session destroyed and cookies cleared");
         res.sendStatus(200);
       });
     });
@@ -238,9 +257,14 @@ export function setupAuth(app: Express) {
   
   // Keep the original endpoint for backward compatibility
   app.post("/api/logout", (req, res, next) => {
+    console.log("Regular logout initiated - using nuclear approach");
+    
     // First logout the user
     req.logout((err) => {
-      if (err) return next(err);
+      if (err) {
+        console.error("Error during req.logout:", err);
+        return next(err);
+      }
       
       // Then completely destroy the session
       req.session.destroy((sessionErr) => {
@@ -248,15 +272,64 @@ export function setupAuth(app: Express) {
           console.error("Error destroying session:", sessionErr);
         }
         
-        // Clear the cookie by setting an expired cookie
+        // Clear the cookie by setting an expired cookie with multiple approaches
         res.clearCookie('connect.sid');
         
+        // More aggressive cookie clearing with various domain options
+        res.clearCookie('connect.sid', { path: '/' });
+        res.clearCookie('connect.sid', { path: '/', domain: req.hostname });
+        
+        // Set max-age to 0 to immediately expire
+        res.cookie('connect.sid', '', { 
+          maxAge: 0,
+          expires: new Date(0),
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict'
+        });
+        
+        console.log("Session destroyed and cookies cleared");
         res.sendStatus(200);
       });
     });
   });
 
+  // Add a route that checks if user is authenticated with more debugging
+  app.get("/api/check-session", (req, res) => {
+    const sessionId = req.sessionID;
+    const hasSession = !!req.session;
+    const isAuthenticated = req.isAuthenticated();
+    const cookies = req.headers.cookie;
+    
+    console.log("Session check:", { 
+      sessionId: sessionId ? "exists" : "missing", 
+      hasSession, 
+      isAuthenticated,
+      hasCookies: !!cookies
+    });
+    
+    if (isAuthenticated) {
+      return res.json({ 
+        authenticated: true, 
+        hasSession: true,
+        userId: req.user?.id
+      });
+    } else {
+      return res.json({ 
+        authenticated: false, 
+        hasSession: hasSession
+      });
+    }
+  });
+
   app.get("/api/user", (req, res) => {
+    // Console log to help with debugging
+    if (req.query.debug) {
+      console.log("Session ID:", req.sessionID);
+      console.log("Is authenticated:", req.isAuthenticated());
+      console.log("Has cookie header:", !!req.headers.cookie);
+    }
+    
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
