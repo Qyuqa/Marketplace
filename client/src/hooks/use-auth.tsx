@@ -7,6 +7,7 @@ import {
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -22,6 +23,7 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
   const {
     data: user,
     error,
@@ -114,15 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // First update React Query cache
       queryClient.setQueryData(["/api/user"], null);
       // Invalidate cart query after logout
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      
+      // Show success toast
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      // Redirect to homepage after successful logout
-      window.location.href = "/";
+      
+      // Use Wouter's navigation instead of window.location for a cleaner SPA experience
+      setLocation("/");
     },
     onError: (error: Error) => {
       toast({
@@ -130,6 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: error.message,
         variant: "destructive",
       });
+      
+      // Even on error, try to navigate to home page
+      setLocation("/");
     },
   });
 
