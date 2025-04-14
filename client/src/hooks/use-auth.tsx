@@ -114,15 +114,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // First, manually remove user data from the cache
       queryClient.setQueryData(["/api/user"], null);
-      // Invalidate cart query after logout
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      
+      // Then reset all query cache to ensure all authenticated data is cleared
+      queryClient.clear();
+      
+      // Show toast
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      // Redirect to homepage after successful logout
-      window.location.href = "/";
+      
+      // Use a slight delay before redirecting to ensure state is properly reset
+      setTimeout(() => {
+        // Force reload the page instead of just changing location
+        // This ensures all React state is completely reset
+        window.location.reload();
+      }, 100);
     },
     onError: (error: Error) => {
       toast({

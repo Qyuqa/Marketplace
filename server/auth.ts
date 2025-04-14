@@ -118,9 +118,22 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    // First call logout to clear authentication
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      
+      // Then destroy the session to ensure complete cleanup
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return next(err);
+        }
+        
+        // Clear the session cookie
+        res.clearCookie('connect.sid');
+        
+        res.sendStatus(200);
+      });
     });
   });
 
