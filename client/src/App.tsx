@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
@@ -18,10 +18,38 @@ import LogoutPage from "@/pages/logout-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { PWAInstallBanner } from "@/components/pwa-install-banner";
+import { useEffect } from "react";
+import { queryClient } from "@/lib/queryClient";
+
+// This component handles URL parameters and session clearing
+function SessionManager() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    // Check if there's a logout parameter in the URL
+    if (location.includes('logout=')) {
+      console.log('Logout parameter detected in URL, clearing session data');
+      
+      // Clear all client-side state
+      queryClient.clear();
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      
+      // Clear the URL parameter without reloading (cleaner URL)
+      window.history.replaceState({}, document.title, '/');
+    }
+  }, [location]);
+  
+  return null; // This component doesn't render anything
+}
 
 function App() {
   return (
     <>
+      {/* Add session manager to handle logout via URL parameters */}
+      <SessionManager />
+      
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow">

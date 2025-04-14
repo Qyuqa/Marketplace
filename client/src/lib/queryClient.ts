@@ -62,25 +62,43 @@ export const queryClient = new QueryClient({
  */
 export async function forceLogout() {
   try {
+    console.log("Starting force logout process...");
+    
     // 1. First clear all client-side state
     queryClient.clear();
-    localStorage.clear();
-    sessionStorage.clear();
+    console.log("Cleared query cache");
     
-    // 2. Make the server-side logout request
-    await fetch('/api/logout', {
+    localStorage.clear();
+    console.log("Cleared localStorage");
+    
+    sessionStorage.clear();
+    console.log("Cleared sessionStorage");
+    
+    // 2. Clear the session cookie directly - do this first in case the fetch fails
+    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    console.log("Cleared session cookie");
+    
+    // 3. Make the server-side logout request - don't await this to prevent blocking
+    fetch('/api/logout', {
       method: 'POST',
       credentials: 'include',
+    }).catch(e => {
+      console.error("Error during logout API call, but continuing:", e);
     });
+    console.log("Sent logout request");
     
-    // 3. Clear the session cookie directly
-    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    
-    // 4. Force a complete reload of the application
-    window.location.href = '/?logout=' + Date.now();
+    // 4. Brief delay to let any pending operations complete
+    setTimeout(() => {
+      console.log("Reloading page...");
+      // 5. Force a complete reload of the application - with cache busting
+      window.location.href = '/?logout=' + Date.now();
+    }, 300);
   } catch (err) {
     console.error('Force logout error:', err);
-    // If an error occurs during logout, still force reload
-    window.location.href = '/?logout=' + Date.now();
+    // If an error occurs during logout, still force reload after a brief delay
+    alert("An error occurred during logout. The page will reload.");
+    setTimeout(() => {
+      window.location.href = '/?logout=' + Date.now();
+    }, 1000);
   }
 }
