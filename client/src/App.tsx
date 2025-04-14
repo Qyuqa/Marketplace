@@ -16,6 +16,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import ProfilePage from "@/pages/profile-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import { PWAInstallBanner } from "@/components/pwa-install-banner";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         </main>
         <Footer />
       </div>
+      <PWAInstallBanner />
       <Toaster />
     </>
   );
