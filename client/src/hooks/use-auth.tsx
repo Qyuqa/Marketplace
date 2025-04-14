@@ -113,37 +113,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      const response = await apiRequest("POST", "/api/logout");
+      return response.ok;
     },
-    onSuccess: () => {
-      // First update React Query cache
-      queryClient.setQueryData(["/api/user"], null);
-      // Invalidate ALL queries to ensure a clean slate
+    onSettled: (success, error) => {
+      if (error) {
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
+      }
+      
+      // Always update cache and redirect regardless of success/error
+      // Clear all cached data
       queryClient.clear();
       
-      // Show success toast
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      
-      // Force a hard redirect (full page refresh) to the homepage
+      // Force navigation to homepage with a full page reload 
+      // This is the most reliable way to reset the application state
       setTimeout(() => {
-        window.location = window.location.origin as any;
-      }, 300); // Small delay to ensure toast is visible
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      
-      // Even on error, try to redirect to homepage
-      setTimeout(() => {
-        window.location = window.location.origin as any;
+        // Using window.location.replace ensures we don't add to browser history
+        window.location.replace('/');
       }, 300);
-    },
+    }
   });
 
   return (

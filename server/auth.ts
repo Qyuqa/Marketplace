@@ -118,9 +118,29 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
+    // Get the session ID before logout
+    const sessionID = req.sessionID;
+    
+    // First destroy the session entirely
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return next(err);
+      }
+      
+      // Then logout the user (clears req.user)
+      req.logout((logoutErr) => {
+        if (logoutErr) {
+          console.error("Error logging out:", logoutErr);
+          return next(logoutErr);
+        }
+        
+        // Clear the session cookie
+        res.clearCookie('connect.sid');
+        
+        console.log(`User logged out successfully. Session ${sessionID} destroyed.`);
+        res.sendStatus(200);
+      });
     });
   });
 
