@@ -117,20 +117,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      // Redirect to the logout page which will handle the session cleaning
+      window.location.href = "/logout";
+      // This is a fake promise that never resolves since we're redirecting
+      return new Promise<void>(() => {});
     },
+    // We don't actually need these handlers since we're redirecting to /logout
+    // but keeping them for completeness
     onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
-      // Invalidate cart query after logout
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      // This will not execute due to the page redirect above
+      queryClient.clear(); // Clear ALL queries, not just user
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      // Use window.location.replace instead of window.location.href to prevent redirect loops
-      if (window.location.pathname !== "/") {
-        window.location.replace("/");
-      }
     },
     onError: (error: Error) => {
       toast({
