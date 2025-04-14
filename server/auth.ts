@@ -31,14 +31,11 @@ export async function comparePasswords(supplied: string, stored: string) {
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "qyuqa-marketplace-secret",
-    resave: true,
+    resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
     }
   };
 
@@ -121,22 +118,9 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    // First call logout to clear authentication
     req.logout((err) => {
       if (err) return next(err);
-      
-      // Then destroy the session to ensure complete cleanup
-      req.session.destroy((err) => {
-        if (err) {
-          console.error("Error destroying session:", err);
-          return next(err);
-        }
-        
-        // Clear the session cookie
-        res.clearCookie('connect.sid');
-        
-        res.sendStatus(200);
-      });
+      res.sendStatus(200);
     });
   });
 
