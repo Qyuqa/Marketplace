@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import QyuqaLogo from "@/assets/qyuqa-logo.png";
 
 export default function Header() {
@@ -32,14 +34,38 @@ export default function Header() {
   
   const { user, logoutMutation } = useAuth();
   const { cartItems } = useCart();
+  const { toast } = useToast();
   
   const toggleMobileSearch = () => setShowMobileSearch(prev => !prev);
   const toggleMobileMenu = () => setShowMobileMenu(prev => !prev);
   
   const toggleCartDrawer = () => setShowCartDrawer(prev => !prev);
   
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Just set the user to null in the query cache immediately
+    queryClient.setQueryData(["/api/user"], null);
+    
+    // Then, trigger the actual API call
+    apiRequest("POST", "/api/logout")
+      .then(() => {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out."
+        });
+        
+        // Force a page reload instead of using the router
+        window.location.href = "/";
+      })
+      .catch(error => {
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      });
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
