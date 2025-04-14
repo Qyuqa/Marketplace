@@ -65,12 +65,29 @@ export async function forceLogout() {
   try {
     console.log("Starting ultra-nuclear logout process...");
     
-    // 1. First clear all client-side state
+    // THE KEY FIX: Set logout timestamp to force client-side logout
+    // This timestamp will be checked by useAuth to determine if user is logged out
+    // By setting this timestamp BEFORE clearing localStorage, we ensure it persists
+    localStorage.setItem('logout_timestamp', Date.now().toString());
+    console.log("Set logout timestamp to force client-side logout");
+    
+    // 1. Now clear all client-side state - except the logout timestamp!
     queryClient.clear();
     console.log("Cleared query cache");
     
-    localStorage.clear();
-    console.log("Cleared localStorage");
+    // Don't completely clear localStorage now, just selectively clear relevant items
+    const keysToPreserve = ['logout_timestamp'];
+    const keysToRemove = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && !keysToPreserve.includes(key)) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    console.log("Selectively cleared localStorage");
     
     sessionStorage.clear();
     console.log("Cleared sessionStorage");

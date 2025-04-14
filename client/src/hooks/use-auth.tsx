@@ -22,8 +22,28 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  // NEW APPROACH: Keep track of an explicit logout timestamp in localStorage
+  // When this timestamp is newer than the last login, consider the user logged out
+  // This way, the client knows definitively whether a user is meant to be logged out
+  // regardless of whether the server session was properly cleared
+  
+  // Check localStorage for a logout timestamp
+  const getStoredLogoutTime = (): number => {
+    const timestamp = localStorage.getItem('logout_timestamp');
+    return timestamp ? parseInt(timestamp, 10) : 0;
+  };
+  
+  // Get the login timestamp
+  const getStoredLoginTime = (): number => {
+    const timestamp = localStorage.getItem('login_timestamp');
+    return timestamp ? parseInt(timestamp, 10) : 0;
+  };
+  
+  // If logout timestamp is newer than login timestamp, user is explicitly logged out
+  const isExplicitlyLoggedOut = getStoredLogoutTime() > getStoredLoginTime();
+  
   const {
-    data: user,
+    data: serverUser,
     error,
     isLoading,
     refetch,
@@ -37,6 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: true, // Always refetch when component mounts
     refetchOnReconnect: true, // Refetch when reconnecting
   });
+  
+  // Override the user data if we've explicitly logged out
+  const user = isExplicitlyLoggedOut ? null : serverUser;
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -44,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: async (user: SelectUser) => {
+      // Store login timestamp 
+      localStorage.setItem('login_timestamp', Date.now().toString());
+      
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login successful",
@@ -103,6 +129,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
+      // Store login timestamp for newly registered user
+      localStorage.setItem('login_timestamp', Date.now().toString());
+      
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
