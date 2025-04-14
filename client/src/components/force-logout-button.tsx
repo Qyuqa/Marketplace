@@ -18,35 +18,9 @@ export function ForceLogoutButton() {
       description: "The app will reload and sign you out...",
     });
     
-    // Wait a moment so user can see the toast
-    setTimeout(() => {
-      try {
-        // 1. Clear browser state
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // 2. Delete cookies
-        document.cookie.split(";").forEach(function(c) {
-          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
-        
-        // Special delete for connect.sid
-        document.cookie = "connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        
-        // 3. Hit the logout endpoint directly (don't wait for response)
-        fetch('/api/logout', {
-          method: 'POST',
-          credentials: 'include'
-        }).catch(console.error);
-        
-        // 4. Force reload with cache busting
-        window.location.href = "/?logout=" + Date.now();
-      } catch (error) {
-        console.error("Force logout error:", error);
-        // Still try to reload
-        window.location.reload();
-      }
-    }, 1000);
+    // The most reliable way to log out is to access our standalone HTML page
+    // This bypasses all React state and directly opens a page that handles everything
+    window.location.href = "/force-logout";
   };
   
   return (

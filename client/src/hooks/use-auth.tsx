@@ -117,27 +117,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Redirect to the logout page which will handle the session cleaning
-      window.location.href = "/logout";
+      // Use our most reliable logout method - redirect to the dedicated HTML page
+      window.location.href = "/force-logout";
       // This is a fake promise that never resolves since we're redirecting
       return new Promise<void>(() => {});
     },
-    // We don't actually need these handlers since we're redirecting to /logout
-    // but keeping them for completeness
+    // These handlers won't run due to the immediate redirect
     onSuccess: () => {
-      // This will not execute due to the page redirect above
-      queryClient.clear(); // Clear ALL queries, not just user
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
+      // Will not execute
+      queryClient.clear();
     },
     onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Will not execute
+      console.error("Logout error:", error);
     },
   });
 
