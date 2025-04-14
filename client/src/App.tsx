@@ -14,6 +14,7 @@ import VendorRegister from "@/pages/vendor-register";
 import VendorDashboard from "@/pages/vendor-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ProfilePage from "@/pages/profile-page";
+import LogoutPage from "@/pages/logout-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { PWAInstallBanner } from "@/components/pwa-install-banner";
@@ -31,6 +32,7 @@ function App() {
             <Route path="/vendors" component={VendorsPage} />
             <Route path="/vendors/:id" component={VendorDetail} />
             <Route path="/auth" component={AuthPage} />
+            <Route path="/logout" component={LogoutPage} />
             <ProtectedRoute path="/cart" component={CartPage} />
             <ProtectedRoute path="/checkout" component={CheckoutPage} />
             <ProtectedRoute path="/vendor/register" component={VendorRegister} />

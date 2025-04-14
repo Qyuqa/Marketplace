@@ -45,27 +45,8 @@ export default function Header() {
     e.preventDefault();
     e.stopPropagation();
     
-    // Just set the user to null in the query cache immediately
-    queryClient.setQueryData(["/api/user"], null);
-    
-    // Then, trigger the actual API call
-    apiRequest("POST", "/api/logout")
-      .then(() => {
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out."
-        });
-        
-        // Force a page reload instead of using the router
-        window.location.href = "/";
-      })
-      .catch(error => {
-        toast({
-          title: "Logout failed",
-          description: error.message,
-          variant: "destructive"
-        });
-      });
+    // Instead of making the API call here, redirect to a dedicated logout page
+    window.location.href = "/logout";
   };
   
   const cartItemCount = cartItems ? cartItems.length : 0;
