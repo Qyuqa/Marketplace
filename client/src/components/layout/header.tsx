@@ -30,7 +30,8 @@ export default function Header() {
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [location, setLocation] = useLocation();
   
-  const { user, logoutMutation } = useAuth();
+  // Force component to re-render when user authentication changes
+  const { user, logoutMutation, isLoading } = useAuth();
   const { cartItems } = useCart();
   
   const toggleMobileSearch = () => setShowMobileSearch(prev => !prev);

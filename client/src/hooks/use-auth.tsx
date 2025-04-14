@@ -118,8 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       // First update React Query cache
       queryClient.setQueryData(["/api/user"], null);
-      // Invalidate cart query after logout
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      // Invalidate ALL queries to ensure a clean slate
+      queryClient.clear();
       
       // Show success toast
       toast({
@@ -127,9 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "You have been successfully logged out.",
       });
       
-      // Force a hard redirect to home page - this ensures we completely reset the application state
+      // Force a hard redirect (full page refresh) to the homepage
       setTimeout(() => {
-        window.location.replace("/");
+        window.location = window.location.origin as any;
       }, 300); // Small delay to ensure toast is visible
     },
     onError: (error: Error) => {
@@ -139,9 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       
-      // Even on error, force redirect to homepage
+      // Even on error, try to redirect to homepage
       setTimeout(() => {
-        window.location.replace("/");
+        window.location = window.location.origin as any;
       }, 300);
     },
   });
