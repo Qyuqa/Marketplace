@@ -48,10 +48,7 @@ export default function ResetPasswordPage() {
 
   const verifyToken = async (token: string) => {
     try {
-      await apiRequest("/api/verify-reset-token", {
-        method: "POST",
-        body: JSON.stringify({ token }),
-      });
+      await apiRequest("POST", "/api/verify-reset-token", { token });
       setIsTokenValid(true);
     } catch (error) {
       setIsTokenValid(false);
@@ -76,14 +73,11 @@ export default function ResetPasswordPage() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: ResetPasswordFormValues) => {
-      const response = await apiRequest("/api/reset-password", {
-        method: "POST",
-        body: JSON.stringify({
-          token: data.token,
-          newPassword: data.newPassword,
-        }),
+      const response = await apiRequest("POST", "/api/reset-password", {
+        token: data.token,
+        newPassword: data.newPassword,
       });
-      return response;
+      return response.json();
     },
     onSuccess: () => {
       setResetSuccess(true);
