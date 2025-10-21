@@ -10,6 +10,8 @@ import VendorsPage from "@/pages/vendors-page";
 import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout-page";
 import AuthPage from "@/pages/auth-page";
+import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
 import VendorRegister from "@/pages/vendor-register";
 import VendorDashboard from "@/pages/vendor-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -99,6 +101,8 @@ function App() {
             <Route path="/vendors" component={VendorsPage} />
             <Route path="/vendors/:id" component={VendorDetail} />
             <Route path="/auth" component={AuthPage} />
+            <Route path="/forgot-password" component={ForgotPasswordPage} />
+            <Route path="/reset-password" component={ResetPasswordPage} />
             <Route path="/logout" component={LogoutPage} />
             <ProtectedRoute path="/cart" component={CartPage} />
             <ProtectedRoute path="/checkout" component={CheckoutPage} />

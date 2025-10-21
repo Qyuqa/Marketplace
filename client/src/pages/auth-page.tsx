@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -224,12 +224,11 @@ export default function AuthPage() {
                         )}
                       />
 
-                      <a
-                        href="#"
-                        className="text-sm text-primary-600 hover:text-primary-700"
-                      >
-                        Forgot password?
-                      </a>
+                      <Link href="/forgot-password">
+                        <a className="text-sm text-primary-600 hover:text-primary-700" data-testid="link-forgot-password">
+                          Forgot password?
+                        </a>
+                      </Link>
                     </div>
 
                     <Button

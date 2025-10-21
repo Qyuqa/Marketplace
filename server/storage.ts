@@ -7,7 +7,8 @@ import {
   cartItems, CartItem, InsertCartItem,
   orders, Order, InsertOrder,
   orderItems, OrderItem, InsertOrderItem,
-  reviews, Review, InsertReview
+  reviews, Review, InsertReview,
+  passwordResetTokens, PasswordResetToken, InsertPasswordResetToken
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -73,6 +74,12 @@ export interface IStorage {
   updateProductRating(productId: number): Promise<void>;
   updateVendorRating(vendorId: number): Promise<void>;
   
+  // Password reset operations
+  createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  deletePasswordResetToken(token: string): Promise<void>;
+  cleanupExpiredTokens(): Promise<void>;
+  
   // Session store
   sessionStore: session.Store;
   
@@ -90,6 +97,7 @@ export class MemStorage implements IStorage {
   private orders: Map<number, Order>;
   private orderItems: Map<number, OrderItem>;
   private reviews: Map<number, Review>;
+  private passwordResetTokens: Map<number, PasswordResetToken>;
   
   currentUserId: number;
   currentVendorId: number;
@@ -100,6 +108,7 @@ export class MemStorage implements IStorage {
   currentOrderId: number;
   currentOrderItemId: number;
   currentReviewId: number;
+  currentPasswordResetTokenId: number;
   
   sessionStore: session.SessionStore;
 
@@ -113,6 +122,7 @@ export class MemStorage implements IStorage {
     this.orders = new Map();
     this.orderItems = new Map();
     this.reviews = new Map();
+    this.passwordResetTokens = new Map();
     
     this.currentUserId = 1;
     this.currentVendorId = 1;
@@ -123,6 +133,7 @@ export class MemStorage implements IStorage {
     this.currentOrderId = 1;
     this.currentOrderItemId = 1;
     this.currentReviewId = 1;
+    this.currentPasswordResetTokenId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -831,6 +842,41 @@ export class MemStorage implements IStorage {
     }
     
     this.vendors.set(vendorId, vendor);
+  }
+  
+  // Password reset methods
+  async createPasswordResetToken(insertToken: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const id = this.currentPasswordResetTokenId++;
+    const token: PasswordResetToken = { 
+      ...insertToken, 
+      id,
+      createdAt: new Date()
+    };
+    this.passwordResetTokens.set(id, token);
+    return token;
+  }
+  
+  async getPasswordResetToken(tokenValue: string): Promise<PasswordResetToken | undefined> {
+    return Array.from(this.passwordResetTokens.values()).find(
+      (token) => token.token === tokenValue
+    );
+  }
+  
+  async deletePasswordResetToken(tokenValue: string): Promise<void> {
+    const token = await this.getPasswordResetToken(tokenValue);
+    if (token) {
+      this.passwordResetTokens.delete(token.id);
+    }
+  }
+  
+  async cleanupExpiredTokens(): Promise<void> {
+    const now = new Date();
+    const expiredTokens = Array.from(this.passwordResetTokens.values())
+      .filter(token => token.expiresAt < now);
+    
+    expiredTokens.forEach(token => {
+      this.passwordResetTokens.delete(token.id);
+    });
   }
 }
 

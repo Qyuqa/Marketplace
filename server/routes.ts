@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { hashPassword, comparePasswords } from "./auth";
@@ -67,6 +68,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Return success JSON
     res.json({ success: true, message: "Forced logout successful" });
+  });
+  
+  // Password reset routes
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { emailOrUsername } = req.body;
+      
+      if (!emailOrUsername) {
+        return res.status(400).json({ message: "Email or username is required" });
+      }
+      
+      // Try to find user by email or username
+      let user = await storage.getUserByEmail(emailOrUsername);
+      if (!user) {
+        user = await storage.getUserByUsername(emailOrUsername);
+      }
+      
+      // Generate and save token if user exists
+      if (user) {
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+        
+        await storage.createPasswordResetToken({
+          userId: user.id,
+          token,
+          expiresAt
+        });
+        
+        // In production, send token via email here
+        console.log(`Password reset token for user ${user.email}: ${token}`);
+        console.log(`Reset link: ${req.protocol}://${req.get('host')}/reset-password?token=${token}`);
+      }
+      
+      // Always return the same message to prevent user enumeration
+      res.status(200).json({ 
+        message: "If an account exists with that email or username, you will receive password reset instructions. In a production environment, this would be sent via email."
+      });
+    } catch (error) {
+      console.error("Error in forgot password:", error);
+      res.status(500).json({ message: "An error occurred while processing your request" });
+    }
+  });
+  
+  app.post("/api/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Token is required" });
+      }
+      
+      const resetToken = await storage.getPasswordResetToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      
+      // Check if token has expired
+      if (resetToken.expiresAt < new Date()) {
+        await storage.deletePasswordResetToken(token);
+        return res.status(400).json({ message: "Token has expired" });
+      }
+      
+      res.status(200).json({ message: "Token is valid" });
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      res.status(500).json({ message: "An error occurred while verifying the token" });
+    }
+  });
+  
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+      
+      const resetToken = await storage.getPasswordResetToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      
+      // Check if token has expired
+      if (resetToken.expiresAt < new Date()) {
+        await storage.deletePasswordResetToken(token);
+        return res.status(400).json({ message: "Token has expired" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update user password
+      await storage.updateUserPassword(resetToken.userId, hashedPassword);
+      
+      // Delete the used token
+      await storage.deletePasswordResetToken(token);
+      
+      // Clean up any other expired tokens
+      await storage.cleanupExpiredTokens();
+      
+      res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "An error occurred while resetting the password" });
+    }
   });
   
   // Setup file upload directory

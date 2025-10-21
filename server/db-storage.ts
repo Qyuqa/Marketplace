@@ -7,7 +7,8 @@ import {
   cartItems, CartItem, InsertCartItem,
   orders, Order, InsertOrder,
   orderItems, OrderItem, InsertOrderItem,
-  reviews, Review, InsertReview
+  reviews, Review, InsertReview,
+  passwordResetTokens, PasswordResetToken, InsertPasswordResetToken
 } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
@@ -703,5 +704,29 @@ export class DatabaseStorage implements IStorage {
         reviewCount: vendorReviews.length
       })
       .where(eq(vendors.id, vendorId));
+  }
+  
+  // Password reset methods
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [newToken] = await db.insert(passwordResetTokens).values(token).returning();
+    return newToken;
+  }
+  
+  async getPasswordResetToken(tokenValue: string): Promise<PasswordResetToken | undefined> {
+    const [token] = await db.select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, tokenValue));
+    return token;
+  }
+  
+  async deletePasswordResetToken(tokenValue: string): Promise<void> {
+    await db.delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, tokenValue));
+  }
+  
+  async cleanupExpiredTokens(): Promise<void> {
+    const now = new Date();
+    await db.delete(passwordResetTokens)
+      .where(sql`${passwordResetTokens.expiresAt} < ${now}`);
   }
 }
