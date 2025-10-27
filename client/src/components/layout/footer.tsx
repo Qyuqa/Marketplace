@@ -16,7 +16,7 @@ export default function Footer() {
             <div className="flex items-center mb-4">
               <img src={QyuqaLogo} alt="Qyuqa Logo" className="h-12 w-auto" />
             </div>
-            <p className="mb-4">The ultimate multi-vendor marketplace for all your shopping needs.</p>
+            <p className="mb-4">Fair Access. Safe Trading. Real Opportunity.</p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white">
                 <Facebook size={20} />
