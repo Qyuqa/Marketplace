@@ -6,7 +6,11 @@ import {
   Home, 
   BookOpen, 
   HeartPulse, 
-  Gamepad2
+  Gamepad2,
+  Sparkles,
+  ShoppingBag,
+  Gift,
+  Wheat
 } from "lucide-react";
 
 interface CategoryCardProps {
@@ -17,12 +21,20 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   // Map category icon names to Lucide icons
   const getIcon = (iconName: string) => {
     switch (iconName) {
+      case 'Sparkles':
+        return <Sparkles className="h-6 w-6" />;
+      case 'ShoppingBag':
+        return <ShoppingBag className="h-6 w-6" />;
+      case 'Home':
+        return <Home className="h-6 w-6" />;
+      case 'Gift':
+        return <Gift className="h-6 w-6" />;
+      case 'Wheat':
+        return <Wheat className="h-6 w-6" />;
       case 'shirt':
         return <Shirt className="h-6 w-6" />;
       case 'computer':
         return <Laptop className="h-6 w-6" />;
-      case 'home':
-        return <Home className="h-6 w-6" />;
       case 'book-open':
         return <BookOpen className="h-6 w-6" />;
       case 'heart-pulse':
@@ -30,7 +42,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       case 'gamepad-2':
         return <Gamepad2 className="h-6 w-6" />;
       default:
-        return <Shirt className="h-6 w-6" />;
+        return <Home className="h-6 w-6" />;
     }
   };
   
