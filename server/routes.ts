@@ -8,6 +8,11 @@ import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { hashPassword, comparePasswords } from "./auth";
+import { 
+  sendAdminVendorRegistrationEmail, 
+  sendVendorApprovalEmail, 
+  sendVendorRejectionEmail 
+} from "./email-service";
 import { insertVendorSchema, insertProductSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -333,6 +338,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.login(user, (err) => {
             if (err) throw err;
           });
+        }
+
+        // Send email notification to admin
+        try {
+          await sendAdminVendorRegistrationEmail({
+            vendorName: user?.fullName || user?.username || 'Vendor',
+            vendorEmail: vendor.contactEmail,
+            storeName: vendor.storeName,
+            description: vendor.description,
+            vendorId: vendor.id,
+          });
+        } catch (emailError) {
+          console.error('Failed to send admin notification email:', emailError);
+          // Continue even if email fails - don't block vendor registration
         }
 
         res.status(201).json(vendor);
@@ -945,8 +964,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status" });
       }
       
+      // Get vendor user info for email
+      const vendorUser = await storage.getUser(vendor.userId);
+      
       // Update vendor application status
       const updatedVendor = await storage.updateVendorApplicationStatus(vendorId, status, notes);
+      
+      // Send email notification based on status
+      if (vendorUser && status !== 'pending') {
+        try {
+          if (status === 'approved') {
+            await sendVendorApprovalEmail({
+              vendorName: vendorUser.fullName || vendorUser.username,
+              vendorEmail: vendor.contactEmail,
+              storeName: vendor.storeName,
+              notes,
+            });
+          } else if (status === 'rejected') {
+            await sendVendorRejectionEmail({
+              vendorName: vendorUser.fullName || vendorUser.username,
+              vendorEmail: vendor.contactEmail,
+              storeName: vendor.storeName,
+              notes,
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send vendor notification email:', emailError);
+          // Continue even if email fails - don't block status update
+        }
+      }
       
       res.json(updatedVendor);
     } catch (error) {
