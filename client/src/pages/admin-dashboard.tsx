@@ -33,7 +33,7 @@ export default function AdminDashboard() {
       });
       setLocation("/");
     }
-  }, [user, toast, setLocation]);
+  }, [user]);
 
   // Get all vendor applications
   const { data: vendors, isLoading } = useQuery<Vendor[]>({
