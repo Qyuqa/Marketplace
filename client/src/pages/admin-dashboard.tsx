@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [activeVendor, setActiveVendor] = useState<Vendor | null>(null);
@@ -25,20 +25,16 @@ export default function AdminDashboard() {
 
   // Redirect if user is not an admin
   useEffect(() => {
-    if (user && !user.isAdmin) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the admin dashboard.",
-        variant: "destructive",
-      });
+    if (!authLoading && user && !user.isAdmin) {
       setLocation("/");
     }
-  }, [user]);
+  }, [user, authLoading, setLocation]);
 
   // Get all vendor applications
   const { data: vendors, isLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/admin/vendor-applications"],
     refetchOnWindowFocus: false,
+    enabled: !!user?.isAdmin,
   });
 
   // Mutation to approve/reject vendor application
@@ -90,7 +86,7 @@ export default function AdminDashboard() {
   const approvedApplications = vendors?.filter(v => v.applicationStatus === "approved") || [];
   const rejectedApplications = vendors?.filter(v => v.applicationStatus === "rejected") || [];
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[600px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -98,7 +94,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user) {
+  if (!user || !user.isAdmin) {
     return null;
   }
 
