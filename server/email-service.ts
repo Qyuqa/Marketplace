@@ -65,7 +65,7 @@ export interface VendorRejectionEmailData {
 export async function sendAdminVendorRegistrationEmail(data: VendorRegistrationEmailData) {
   try {
     const { vendorName, vendorEmail, storeName, description, vendorId } = data;
-    const { client, fromEmail } = await getResendClient();
+    const { client } = await getResendClient();
 
     const emailHtml = `
       <h2>New Vendor Application</h2>
@@ -84,7 +84,7 @@ export async function sendAdminVendorRegistrationEmail(data: VendorRegistrationE
     `;
 
     const result = await client.emails.send({
-      from: fromEmail,
+      from: 'admin@qyuqa.com',
       to: ADMIN_EMAIL,
       subject: `New Vendor Application: ${storeName}`,
       html: emailHtml,
@@ -101,7 +101,7 @@ export async function sendAdminVendorRegistrationEmail(data: VendorRegistrationE
 export async function sendVendorApprovalEmail(data: VendorApprovalEmailData) {
   try {
     const { vendorName, vendorEmail, storeName, notes } = data;
-    const { client, fromEmail } = await getResendClient();
+    const { client } = await getResendClient();
 
     const emailHtml = `
       <h2>Congratulations! Your Vendor Application Has Been Approved</h2>
@@ -128,7 +128,7 @@ export async function sendVendorApprovalEmail(data: VendorApprovalEmailData) {
     `;
 
     const result = await client.emails.send({
-      from: fromEmail,
+      from: 'info@qyuqa.com',
       to: vendorEmail,
       subject: `Your Vendor Application Has Been Approved - ${storeName}`,
       html: emailHtml,
@@ -145,7 +145,7 @@ export async function sendVendorApprovalEmail(data: VendorApprovalEmailData) {
 export async function sendVendorRejectionEmail(data: VendorRejectionEmailData) {
   try {
     const { vendorName, vendorEmail, storeName, notes } = data;
-    const { client, fromEmail } = await getResendClient();
+    const { client } = await getResendClient();
 
     const emailHtml = `
       <h2>Update on Your Vendor Application</h2>
@@ -164,7 +164,7 @@ export async function sendVendorRejectionEmail(data: VendorRejectionEmailData) {
     `;
 
     const result = await client.emails.send({
-      from: fromEmail,
+      from: 'info@qyuqa.com',
       to: vendorEmail,
       subject: `Update on Your Vendor Application - ${storeName}`,
       html: emailHtml,
