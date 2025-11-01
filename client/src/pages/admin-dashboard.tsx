@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Vendor } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -24,15 +24,16 @@ export default function AdminDashboard() {
   const [openDialog, setOpenDialog] = useState(false);
 
   // Redirect if user is not an admin
-  if (user && !user.isAdmin) {
-    toast({
-      title: "Access Denied",
-      description: "You don't have permission to access the admin dashboard.",
-      variant: "destructive",
-    });
-    setLocation("/");
-    return null;
-  }
+  useEffect(() => {
+    if (user && !user.isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access the admin dashboard.",
+        variant: "destructive",
+      });
+      setLocation("/");
+    }
+  }, [user, toast, setLocation]);
 
   // Get all vendor applications
   const { data: vendors, isLoading } = useQuery<Vendor[]>({
