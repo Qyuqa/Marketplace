@@ -78,6 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("User login successful:", user);
       
+      // Check if there's a returnTo path stored
+      const returnTo = localStorage.getItem('returnTo');
+      if (returnTo) {
+        localStorage.removeItem('returnTo');
+        console.log("Redirecting to stored path:", returnTo);
+        if (window.location.pathname !== returnTo) {
+          window.location.replace(returnTo);
+        }
+        return;
+      }
+      
       // If user is a vendor, check if they have an approved application
       if (user.isVendor) {
         console.log("User is a vendor, checking application status");
@@ -137,6 +148,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: `Welcome to Qyuqa, ${user.fullName || user.username}!`,
       });
+      
+      // Check if there's a returnTo path stored
+      const returnTo = localStorage.getItem('returnTo');
+      if (returnTo) {
+        localStorage.removeItem('returnTo');
+        console.log("Redirecting to stored path:", returnTo);
+        if (window.location.pathname !== returnTo) {
+          window.location.replace(returnTo);
+        }
+        return;
+      }
+      
       // Redirect to homepage after successful registration, only if we're not already there
       if (window.location.pathname !== "/") {
         window.location.replace("/");
