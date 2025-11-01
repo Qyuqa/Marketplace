@@ -38,7 +38,7 @@ async function getResendClient() {
   };
 }
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@qyuqa.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@qyuqa.com';
 
 export interface VendorRegistrationEmailData {
   vendorName: string;
