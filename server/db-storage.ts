@@ -117,7 +117,6 @@ export class DatabaseStorage implements IStorage {
         storeName: "TechGadgets",
         description: "The latest electronics and gadgets at affordable prices",
         contactEmail: "contact@techgadgets.com",
-        logoUrl: "https://via.placeholder.com/200?text=TG",
         bannerColor: "from-blue-600 to-blue-400"
       },
       {
@@ -125,7 +124,6 @@ export class DatabaseStorage implements IStorage {
         storeName: "Fashion Forward",
         description: "Trendy clothes and accessories for all seasons",
         contactEmail: "support@fashionforward.com",
-        logoUrl: "https://via.placeholder.com/200?text=FF",
         bannerColor: "from-purple-600 to-purple-400"
       },
       {
@@ -133,7 +131,6 @@ export class DatabaseStorage implements IStorage {
         storeName: "Home Harmony",
         description: "Beautiful furniture and decor for your home",
         contactEmail: "info@homeharmony.com",
-        logoUrl: "https://via.placeholder.com/200?text=HH",
         bannerColor: "from-green-600 to-green-400"
       }
     ];

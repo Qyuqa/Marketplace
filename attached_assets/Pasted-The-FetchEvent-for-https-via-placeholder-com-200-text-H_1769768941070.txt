@@ -1,0 +1,128 @@
+The FetchEvent for "https://via.placeholder.com/200?text=HH" resulted in a network error response: the promise was rejected.Understand this warning
+The FetchEvent for "https://via.placeholder.com/200?text=TG" resulted in a network error response: the promise was rejected.Understand this warning
+The FetchEvent for "https://via.placeholder.com/200?text=FF" resulted in a network error response: the promise was rejected.Understand this warning
+sw.js:57  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:57:16
+(anonymous) @ sw.js:57
+Promise.then
+(anonymous) @ sw.js:53Understand this error
+sw.js:57  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:57:16
+(anonymous) @ sw.js:57
+Promise.then
+(anonymous) @ sw.js:53Understand this error
+sw.js:57  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:57:16
+(anonymous) @ sw.js:57
+Promise.then
+(anonymous) @ sw.js:53Understand this error
+via.placeholder.com/200?text=HH:1  GET https://via.placeholder.com/200?text=HH net::ERR_FAILED
+Image
+qx @ index-y5rjCn09.js:8
+Hx @ index-y5rjCn09.js:8
+n2 @ index-y5rjCn09.js:8
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+(anonymous) @ index-y5rjCn09.js:8
+setTimeout
+a @ index-y5rjCn09.js:8
+d @ index-y5rjCn09.js:8
+batch @ index-y5rjCn09.js:8
+#s @ index-y5rjCn09.js:8
+setData @ index-y5rjCn09.js:8
+onSuccess @ index-y5rjCn09.js:8
+v @ index-y5rjCn09.js:8
+Promise.then
+S @ index-y5rjCn09.js:8
+start @ index-y5rjCn09.js:8
+fetch @ index-y5rjCn09.js:8
+#d @ index-y5rjCn09.js:8
+onSubscribe @ index-y5rjCn09.js:8
+subscribe @ index-y5rjCn09.js:8
+(anonymous) @ index-y5rjCn09.js:8
+Jg @ index-y5rjCn09.js:6
+ic @ index-y5rjCn09.js:8
+Qo @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Gx @ index-y5rjCn09.js:8
+F @ index-y5rjCn09.js:1
+U @ index-y5rjCn09.js:1Understand this error
+via.placeholder.com/200?text=TG:1  GET https://via.placeholder.com/200?text=TG net::ERR_FAILED
+Image
+qx @ index-y5rjCn09.js:8
+Hx @ index-y5rjCn09.js:8
+n2 @ index-y5rjCn09.js:8
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+(anonymous) @ index-y5rjCn09.js:8
+setTimeout
+a @ index-y5rjCn09.js:8
+d @ index-y5rjCn09.js:8
+batch @ index-y5rjCn09.js:8
+#s @ index-y5rjCn09.js:8
+setData @ index-y5rjCn09.js:8
+onSuccess @ index-y5rjCn09.js:8
+v @ index-y5rjCn09.js:8
+Promise.then
+S @ index-y5rjCn09.js:8
+start @ index-y5rjCn09.js:8
+fetch @ index-y5rjCn09.js:8
+#d @ index-y5rjCn09.js:8
+onSubscribe @ index-y5rjCn09.js:8
+subscribe @ index-y5rjCn09.js:8
+(anonymous) @ index-y5rjCn09.js:8
+Jg @ index-y5rjCn09.js:6
+ic @ index-y5rjCn09.js:8
+Qo @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Gx @ index-y5rjCn09.js:8
+F @ index-y5rjCn09.js:1
+U @ index-y5rjCn09.js:1Understand this error
+via.placeholder.com/200?text=FF:1  GET https://via.placeholder.com/200?text=FF net::ERR_FAILED
+Image
+qx @ index-y5rjCn09.js:8
+Hx @ index-y5rjCn09.js:8
+n2 @ index-y5rjCn09.js:8
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+(anonymous) @ index-y5rjCn09.js:8
+setTimeout
+a @ index-y5rjCn09.js:8
+d @ index-y5rjCn09.js:8
+batch @ index-y5rjCn09.js:8
+#s @ index-y5rjCn09.js:8
+setData @ index-y5rjCn09.js:8
+onSuccess @ index-y5rjCn09.js:8
+v @ index-y5rjCn09.js:8
+Promise.then
+S @ index-y5rjCn09.js:8
+start @ index-y5rjCn09.js:8
+fetch @ index-y5rjCn09.js:8
+#d @ index-y5rjCn09.js:8
+onSubscribe @ index-y5rjCn09.js:8
+subscribe @ index-y5rjCn09.js:8
+(anonymous) @ index-y5rjCn09.js:8
+Jg @ index-y5rjCn09.js:6
+ic @ index-y5rjCn09.js:8
+Qo @ index-y5rjCn09.js:8
+Zx @ index-y5rjCn09.js:8
+gs @ index-y5rjCn09.js:6
+a2 @ index-y5rjCn09.js:8
+no @ index-y5rjCn09.js:8
+Gx @ index-y5rjCn09.js:8
+F @ index-y5rjCn09.js:1
+U @ index-y5rjCn09.js:1Understand this error
+(index):1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+photo-1631157852824-10b68759173a:1  GET https://images.unsplash.com/photo-1631157852824-10b68759173a?w=500 404 (Not Found)
